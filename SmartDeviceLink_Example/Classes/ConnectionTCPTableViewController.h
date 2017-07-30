@@ -3,7 +3,8 @@
 //  SmartDeviceLink-iOS
 
 #import <UIKit/UIKit.h>
+#import "SDLTableViewController.h"
 
-@interface ConnectionTCPTableViewController : UITableViewController <UIImagePickerControllerDelegate, UINavigationControllerDelegate>
+@interface ConnectionTCPTableViewController : SDLTableViewController <UIImagePickerControllerDelegate, UINavigationControllerDelegate>
 
 @end

@@ -38,6 +38,7 @@
     
     // Connect Button setup
     self.connectButton.tintColor = [UIColor whiteColor];
+    
 }
 
 - (void)dealloc {

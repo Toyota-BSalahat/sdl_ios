@@ -8,6 +8,7 @@
 #import "ConnectionIAPTableViewController.h"
 #import "ConnectionTransitionContext.h"
 #import "ConnectionAnimatedTransition.h"
+#import "SDLInterfaceManager.h"
 
 
 
@@ -18,6 +19,8 @@
 @property (strong, nonatomic) UIViewController *currentViewController;
 
 @property (strong, nonatomic) UIPanGestureRecognizer *panGestureRecognizer;
+
+@property (strong, nonatomic) SDLInterfaceManager *testManager;
 
 @end
 
@@ -44,6 +47,11 @@
     // Setup initial view controller state
     self.connectionTypeSegmentedControl.selectedSegmentIndex = 0;
     [self loadInitialChildViewController];
+    
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    self.testManager = [[SDLInterfaceManager alloc] initWithWindow:[[UIApplication sharedApplication] keyWindow]];
 }
 
 - (void)loadInitialChildViewController {

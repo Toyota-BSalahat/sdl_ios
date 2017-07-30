@@ -3,7 +3,8 @@
 //  SmartDeviceLink-iOS
 
 #import <UIKit/UIKit.h>
+#import "SDLProjectionViewController.h"
 
-@interface ConnectionContainerViewController : UIViewController
+@interface ConnectionContainerViewController : SDLProjectionViewController
 
 @end

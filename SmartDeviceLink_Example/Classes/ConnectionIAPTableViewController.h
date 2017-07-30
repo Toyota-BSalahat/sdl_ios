@@ -3,7 +3,8 @@
 //  SmartDeviceLink-iOS
 
 #import <UIKit/UIKit.h>
+#import "SDLTableViewController.h"
 
-@interface ConnectionIAPTableViewController : UITableViewController
+@interface ConnectionIAPTableViewController : SDLTableViewController
 
 @end

@@ -9,10 +9,6 @@
 #import "SDLTableViewController.h"
 #import "SDLNotificationConstants.h"
 
-@interface SDLTableViewController ()
-
-@end
-
 @implementation SDLTableViewController
 
 - (void)viewDidAppear:(BOOL)animated {

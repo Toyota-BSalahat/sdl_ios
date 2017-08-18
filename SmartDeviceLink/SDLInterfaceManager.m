@@ -53,13 +53,14 @@
     
     if (currentView.canBecomeFocused && focusableSubviews.count == 0) {
         [self.focusableViews addObject:currentView];
+        currentView.layer.borderWidth = 1.0;
+        currentView.layer.borderColor = [[UIColor blueColor] CGColor];
         return;
     } else if (currentView.subviews.count > 0) {
         NSArray *subviews = currentView.subviews;
         
         for (UIView *childView in subviews) {
-            childView.layer.borderWidth = 1.0;
-            childView.layer.borderColor = [[UIColor redColor] CGColor];
+            
             [self parseViewHierarchy:childView];
         }
     } else {
@@ -75,7 +76,7 @@
 #pragma mark debug functions
 - (void)highlightAllViews {
     for (UIView *view in self.focusableViews) {
-        view.layer.borderColor = [[UIColor blueColor] CGColor];
+        //view.layer.borderColor = [[UIColor blueColor] CGColor];
         view.layer.borderWidth = 2.0;
     }
 }

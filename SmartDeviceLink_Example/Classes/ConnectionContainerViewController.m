@@ -20,7 +20,7 @@
 
 @property (strong, nonatomic) UIPanGestureRecognizer *panGestureRecognizer;
 
-@property (strong, nonatomic) SDLInterfaceManager *testManager;
+@property (strong, nonatomic) id <SDLHapticInterface> testManager;
 
 @end
 

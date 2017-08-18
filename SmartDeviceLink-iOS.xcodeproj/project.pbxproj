@@ -1935,6 +1935,7 @@
 		5DFFB9141BD7C89700DB3F04 /* SDLConnectionManagerType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SDLConnectionManagerType.h; sourceTree = "<group>"; };
 		97E26DEA1E807AD70074A3C7 /* SDLMutableDataQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SDLMutableDataQueue.h; sourceTree = "<group>"; };
 		97E26DEB1E807AD70074A3C7 /* SDLMutableDataQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SDLMutableDataQueue.m; sourceTree = "<group>"; };
+		9EA663581F4735F800D0A065 /* SDLHapticInterface.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SDLHapticInterface.h; sourceTree = "<group>"; };
 		9EF822481F2E569C003871AD /* SDLInterfaceManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SDLInterfaceManager.h; sourceTree = "<group>"; };
 		9EF822491F2E569C003871AD /* SDLInterfaceManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SDLInterfaceManager.m; sourceTree = "<group>"; };
 		9EF8224C1F2E93CD003871AD /* SDLProjectionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SDLProjectionViewController.h; sourceTree = "<group>"; };
@@ -3223,6 +3224,7 @@
 			isa = PBXGroup;
 			children = (
 				5D61FB671A84238B00846EE7 /* SDLProxyListener.h */,
+				9EA663581F4735F800D0A065 /* SDLHapticInterface.h */,
 			);
 			name = "@protocols";
 			sourceTree = "<group>";

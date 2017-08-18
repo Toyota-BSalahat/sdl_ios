@@ -7,11 +7,10 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "SDLHapticInterface.h"
 
-@interface SDLInterfaceManager : NSObject
+@interface SDLInterfaceManager : NSObject <SDLHapticInterface>
 - (instancetype)initWithWindow:(UIWindow *)window;
 - (void)updateInterfaceLayout;
 
-#pragma mark debug functions
-- (void)highlightAllViews;
 @end

@@ -9,6 +9,7 @@
 #import "ConnectionTransitionContext.h"
 #import "ConnectionAnimatedTransition.h"
 #import "SDLInterfaceManager.h"
+#import "SDLTouch.h"
 
 
 
@@ -21,6 +22,8 @@
 @property (strong, nonatomic) UIPanGestureRecognizer *panGestureRecognizer;
 
 @property (strong, nonatomic) id <SDLHapticInterface> testManager;
+@property (strong, nonatomic) id <SDLHapticHitTester> hapticHitTester;
+@property (strong, nonatomic) UITapGestureRecognizer *tapRecognizer;
 
 @end
 
@@ -28,16 +31,39 @@
 
 @implementation ConnectionContainerViewController
 
+
+
+-(void)handleTap:(UITapGestureRecognizer *)gestureRecognizer {
+    
+    CGPoint touchPoint = [gestureRecognizer locationInView: gestureRecognizer.view];
+    CGPoint translatedPoint = [[[UIApplication sharedApplication] keyWindow] convertPoint:touchPoint fromView:gestureRecognizer.view];
+    
+    SDLTouch *sdlDummyTouch = [[SDLTouch alloc] init];
+    sdlDummyTouch.location = translatedPoint;
+    
+    UIView *selectedView = [self.hapticHitTester viewForSDLTouch:sdlDummyTouch];
+    
+    selectedView.layer.borderColor = [[UIColor greenColor] CGColor];
+    selectedView.layer.borderWidth = 4.0;
+    
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     
     self.navigationController.navigationBar.translucent = NO;
+    
+    self.tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTap:)];
+    self.tapRecognizer.numberOfTapsRequired = 2;
     
     // Setup the child VCs
     UIStoryboard *tcpControllerStoryboard = [UIStoryboard storyboardWithName:@"ConnectionTCPTableViewController" bundle:[NSBundle mainBundle]];
     UIStoryboard *iapControllerStoryboard = [UIStoryboard storyboardWithName:@"ConnectionIAPTableViewController" bundle:[NSBundle mainBundle]];
     ConnectionTCPTableViewController *tcpController = [tcpControllerStoryboard instantiateInitialViewController];
     ConnectionIAPTableViewController *iapController = [iapControllerStoryboard instantiateInitialViewController];
+    
+    [tcpController.view addGestureRecognizer:self.tapRecognizer];
+    
     self.viewControllers = @[tcpController, iapController];
     
     // Setup the pan gesture
@@ -51,7 +77,11 @@
 }
 
 - (void)viewDidAppear:(BOOL)animated {
-    self.testManager = [[SDLInterfaceManager alloc] initWithWindow:[[UIApplication sharedApplication] keyWindow]];
+    
+    SDLInterfaceManager *manager = [[SDLInterfaceManager alloc] initWithWindow:[[UIApplication sharedApplication] keyWindow]];
+    self.testManager = manager;
+    self.hapticHitTester = manager;
+    
 }
 
 - (void)loadInitialChildViewController {

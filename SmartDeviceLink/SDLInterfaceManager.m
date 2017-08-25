@@ -8,6 +8,7 @@
 
 #import "SDLInterfaceManager.h"
 #import "SDLNotificationConstants.h"
+#import "SDLTouch.h"
 
 @interface SDLInterfaceManager()
 @property (nonatomic, strong) UIWindow *projectionWindow;
@@ -68,6 +69,35 @@
     }
 }
 
+#pragma mark SDLHapticHitTester functions
+
+- (UIView *)viewForSDLTouch:(SDLTouch *)touch {
+    
+    UIView *selectedView = nil;
+    
+    for (UIView *view in self.focusableViews) {
+        CGPoint localPoint = [view convertPoint:touch.location fromView:self.projectionWindow];
+        if ([view pointInside:localPoint withEvent:nil]) {
+            if (selectedView != nil) {
+                selectedView = nil;
+                break;
+                //the point has been indentified in two views. We cannot identify which with confidence.
+            } else {
+                selectedView = view;
+            }
+        }
+    }
+    
+    NSUInteger selectedViewIndex = [self.focusableViews indexOfObject:selectedView];
+    
+    if (selectedViewIndex != NSNotFound) {
+        return [self.focusableViews objectAtIndex:selectedViewIndex];
+    } else {
+        return nil;
+    }
+    
+}
+
 #pragma mark notifications
 - (void)projectionViewUpdated:(NSNotification *)notification {
     [self updateInterfaceLayout];
@@ -80,5 +110,6 @@
         view.layer.borderWidth = 2.0;
     }
 }
+
 
 @end

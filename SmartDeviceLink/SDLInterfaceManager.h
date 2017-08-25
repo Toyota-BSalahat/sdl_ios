@@ -8,8 +8,9 @@
 
 #import <UIKit/UIKit.h>
 #import "SDLHapticInterface.h"
+#import "SDLHapticHitTester.h"
 
-@interface SDLInterfaceManager : NSObject <SDLHapticInterface>
+@interface SDLInterfaceManager : NSObject <SDLHapticInterface, SDLHapticHitTester>
 - (instancetype)initWithWindow:(UIWindow *)window;
 - (void)updateInterfaceLayout;
 

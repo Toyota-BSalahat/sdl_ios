@@ -40,7 +40,7 @@ NS_ASSUME_NONNULL_BEGIN
  *  @abstract
  *      Location of touch point, in the head unit's coordinate system.
  */
-@property (nonatomic, assign, readonly) CGPoint location;
+@property (nonatomic, assign) CGPoint location;
 
 /**
  *  @abstract

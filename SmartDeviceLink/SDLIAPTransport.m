@@ -496,7 +496,7 @@ int const controlSessionRetryOffsetSeconds = 2;
         //[self.protocolIndexTimer start];
         
         if (!self.session) {
-            [self.protocolIndexTimer start]
+            [self.protocolIndexTimer start];
         }
     }
     

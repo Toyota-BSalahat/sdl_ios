@@ -144,7 +144,7 @@ int const controlSessionRetryOffsetSeconds = 2;
  *  @param notification Contains information about the connected accessory
  */
 - (void)sdl_accessoryConnected:(NSNotification *)notification {
-    EAAccessory *accessory = notification.userInfo[EAAccessoryKey]; //FIXME comment this out
+    //EAAccessory *accessory = notification.userInfo[EAAccessoryKey];
     
     double retryDelay = self.retryDelay;
     SDLLogD(@"Accessory Connected (%@), Opening in %0.03fs", notification.userInfo[EAAccessoryKey], retryDelay);
@@ -155,7 +155,7 @@ int const controlSessionRetryOffsetSeconds = 2;
     }
     
     self.retryCounter = 0;
-    [self performSelector:@selector(sdl_connect:) withObject:accessory afterDelay:retryDelay]; //FIXME send nil instead
+    [self performSelector:@selector(sdl_connect:) withObject:nil afterDelay:retryDelay];
 }
 
 /**
@@ -493,11 +493,11 @@ int const controlSessionRetryOffsetSeconds = 2;
     // Control Session Opened
     if ([ControlProtocolString isEqualToString:session.protocol]) {
         SDLLogD(@"Control Session Established");
-        [self.protocolIndexTimer start]; //FIXME comment out
+        //[self.protocolIndexTimer start];
         
-        /*if (!self.session) {
+        if (!self.session) {
             [self.protocolIndexTimer start]
-        }*/ //FIXME uncomment
+        }
     }
     
     // Data Session Opened
@@ -576,7 +576,7 @@ int const controlSessionRetryOffsetSeconds = 2;
         SDLLogD(@"Control Stream will switch to protocol %@", indexedProtocolString);
         
         // Destroy the control session
-        [strongSelf.protocolIndexTimer cancel]; //FIXME comment out
+        //[strongSelf.protocolIndexTimer cancel];
         dispatch_sync(dispatch_get_main_queue(), ^{
             [strongSelf.controlSession stop];
             strongSelf.controlSession.streamDelegate = nil;
@@ -587,7 +587,7 @@ int const controlSessionRetryOffsetSeconds = 2;
             dispatch_async(dispatch_get_main_queue(), ^{
                 self.retryCounter = 0;
                 [strongSelf sdl_createIAPDataSessionWithAccessory:accessory forProtocol:indexedProtocolString];
-                //[strongSelf.protocolIndexTimer cancel]; FIXME: uncomment
+                [strongSelf.protocolIndexTimer cancel];
             });
         }
     };

@@ -1,8 +1,9 @@
 //  SDLAbstractProtocol.m
 
 #import "SDLAbstractProtocol.h"
-
+#import "SDLAbstractTransport.h"
 #import "SDLRPCMessage.h"
+#import "SDLError.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -68,6 +69,33 @@ NS_ASSUME_NONNULL_BEGIN
     }
 }
 
+- (void)onTransportFailed {
+    NSException *exception = nil;
+    
+    for (id<SDLProtocolListener> listener in self.protocolDelegateTable.allObjects) {
+        switch (self.transport.state){
+            case SDLTransportStateNoSDLService:
+                exception = [NSException sdl_noSDLServiceException];
+                break;
+                
+            case SDLTransportStateConnectFailed:
+                exception = [NSException sdl_connectionFailedException];
+                break;
+                
+            case SDLTransportStateConnectDenied:
+                exception = [NSException sdl_connectionDeniedException];
+                break;
+                
+            default:
+                break;
+        }
+        
+        if ([listener respondsToSelector:@selector(onError:exception:)]) {
+            [listener onError:@"Transport error -- transport failed" exception:exception];
+        }
+    }
+}
+
 - (void)onDataReceived:(NSData *)receivedData {
     [self handleBytesFromTransport:receivedData];
 }
@@ -75,3 +103,4 @@ NS_ASSUME_NONNULL_BEGIN
 @end
 
 NS_ASSUME_NONNULL_END
+

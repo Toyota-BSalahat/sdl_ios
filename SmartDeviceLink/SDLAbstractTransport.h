@@ -5,12 +5,19 @@
 #import "SDLTransportDelegate.h"
 
 NS_ASSUME_NONNULL_BEGIN
-
+typedef enum{
+    SDLTransportStateDisconnected,
+    SDLTransportStateConnecting,
+    SDLTransportStateConnected,
+    SDLTransportStateConnectFailed,
+    SDLTransportStateConnectDenied,
+    SDLTransportStateNoSDLService
+} SDLTransportState;
 @interface SDLAbstractTransport : NSObject
 
 @property (nullable, weak, nonatomic) id<SDLTransportDelegate> delegate;
 @property (strong, nonatomic) NSString *debugConsoleGroupName;
-
+@property (nonatomic, assign) SDLTransportState state;
 - (void)connect;
 - (void)disconnect;
 - (void)sendData:(NSData *)dataToSend;
@@ -19,3 +26,4 @@ NS_ASSUME_NONNULL_BEGIN
 @end
 
 NS_ASSUME_NONNULL_END
+

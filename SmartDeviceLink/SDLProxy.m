@@ -68,7 +68,7 @@ static float DefaultConnectionTimeout = 45.0;
         SDLLogD(@"Framework Version: %@", self.proxyVersion);
         _debugConsoleGroupName = @"default";
         _lsm = [[SDLLockScreenStatusManager alloc] init];
-
+        
         _mutableProxyListeners = [NSMutableSet setWithObject:theDelegate];
         _securityManagers = [NSMutableDictionary dictionary];
         _protocol = protocol;
@@ -76,9 +76,9 @@ static float DefaultConnectionTimeout = 45.0;
         _transport.delegate = protocol;
         [_protocol.protocolDelegateTable addObject:self];
         _protocol.transport = transport;
-
+        
         [self.transport connect];
-
+        
         SDLLogV(@"Proxy transport initialization");
         [[EAAccessoryManager sharedAccessoryManager] registerForLocalNotifications];
         
@@ -88,9 +88,9 @@ static float DefaultConnectionTimeout = 45.0;
         configuration.requestCachePolicy = NSURLRequestUseProtocolCachePolicy;
         
         _urlSession = [NSURLSession sessionWithConfiguration:configuration];
-
+        
     }
-
+    
     return self;
 }
 
@@ -117,12 +117,21 @@ static float DefaultConnectionTimeout = 45.0;
 #pragma mark - Application Lifecycle
 
 - (void)sendMobileHMIState {
-    UIApplicationState appState = [UIApplication sharedApplication].applicationState;
+    __block UIApplicationState appState;
+    
+    if ([NSThread currentThread].isMainThread){
+        appState = [UIApplication sharedApplication].applicationState;
+    }
+    else{
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            appState = [UIApplication sharedApplication].applicationState;
+        });
+    }
     SDLOnHMIStatus *HMIStatusRPC = [[SDLOnHMIStatus alloc] init];
-
+    
     HMIStatusRPC.audioStreamingState = SDLAudioStreamingStateNotAudible;
     HMIStatusRPC.systemContext = SDLSystemContextMain;
-
+    
     switch (appState) {
         case UIApplicationStateActive: {
             HMIStatusRPC.hmiLevel = SDLHMILevelFull;
@@ -134,7 +143,7 @@ static float DefaultConnectionTimeout = 45.0;
         default:
             break;
     }
-
+    
     SDLLogD(@"Mobile UIApplication state changed, sending to remote system: %@", HMIStatusRPC.hmiLevel);
     [self sendRPC:HMIStatusRPC];
 }
@@ -158,20 +167,20 @@ static float DefaultConnectionTimeout = 45.0;
     NSParameterAssert(securityManagerClasses != nil);
     NSParameterAssert(appId != nil);
     self.appId = appId;
-
+    
     for (Class securityManagerClass in securityManagerClasses) {
         if (![securityManagerClass conformsToProtocol:@protocol(SDLSecurityType)]) {
             NSString *reason = [NSString stringWithFormat:@"Invalid security manager: Class %@ does not conform to SDLSecurityType protocol", NSStringFromClass(securityManagerClass)];
             @throw [NSException exceptionWithName:NSInternalInconsistencyException reason:reason userInfo:nil];
         }
-
+        
         NSSet<NSString *> *vehicleMakes = [securityManagerClass availableMakes];
-
+        
         if (vehicleMakes == nil || vehicleMakes.count == 0) {
             NSString *reason = [NSString stringWithFormat:@"Invalid security manager: Failed to retrieve makes for class %@", NSStringFromClass(securityManagerClass)];
             @throw [NSException exceptionWithName:NSInternalInconsistencyException reason:reason userInfo:nil];
         }
-
+        
         for (NSString *vehicleMake in vehicleMakes) {
             self.securityManagers[vehicleMake] = securityManagerClass;
         }
@@ -184,7 +193,7 @@ static float DefaultConnectionTimeout = 45.0;
         self.protocol.appId = self.appId;
         return [[securityManagerClass alloc] init];
     }
-
+    
     return nil;
 }
 
@@ -196,7 +205,7 @@ static float DefaultConnectionTimeout = 45.0;
     SDLLogV(@"Proxy RPC protocol opened");
     // THe RPC payload will be created by the protocol object...it's weird and confusing, I know.
     [self.protocol startServiceWithType:SDLServiceTypeRPC payload:nil];
-
+    
     if (self.startSessionTimer == nil) {
         self.startSessionTimer = [[SDLTimer alloc] initWithDuration:StartSessionTime repeat:NO];
         __weak typeof(self) weakSelf = self;
@@ -220,7 +229,7 @@ static float DefaultConnectionTimeout = 45.0;
     // Turn off the timer, the start session response came back
     [self.startSessionTimer cancel];
     SDLLogV(@"StartSession (response)\nSessionId: %d for serviceType %d", startServiceACK.header.sessionID, startServiceACK.header.serviceType);
-
+    
     if (startServiceACK.header.serviceType == SDLServiceTypeRPC) {
         [self invokeMethodOnDelegates:@selector(onProxyOpened) withObject:nil];
     }
@@ -254,7 +263,7 @@ static float DefaultConnectionTimeout = 45.0;
     SDLRPCMessage *message = [[SDLRPCMessage alloc] initWithDictionary:[dict mutableCopy]];
     NSString *functionName = [message getFunctionName];
     NSString *messageType = [message messageType];
-
+    
     // If it's a response, append response
     if ([messageType isEqualToString:SDLNameResponse]) {
         BOOL notGenericResponseMessage = ![functionName isEqualToString:@"GenericResponse"];
@@ -262,45 +271,45 @@ static float DefaultConnectionTimeout = 45.0;
             functionName = [NSString stringWithFormat:@"%@Response", functionName];
         }
     }
-
+    
     // From the function name, create the corresponding RPCObject and initialize it
     NSString *functionClassName = [NSString stringWithFormat:@"SDL%@", functionName];
     SDLRPCMessage *newMessage = [[NSClassFromString(functionClassName) alloc] initWithDictionary:[dict mutableCopy]];
-
+    
     // Log the RPC message
     SDLLogV(@"Message received: %@", newMessage);
-
+    
     // Intercept and handle several messages ourselves
     if ([functionName isEqualToString:SDLNameOnAppInterfaceUnregistered] || [functionName isEqualToString:SDLNameUnregisterAppInterface]) {
         [self handleRPCUnregistered:dict];
     }
-
+    
     if ([functionName isEqualToString:@"RegisterAppInterfaceResponse"]) {
         [self handleRegisterAppInterfaceResponse:(SDLRPCResponse *)newMessage];
     }
-
+    
     if ([functionName isEqualToString:@"OnEncodedSyncPData"]) {
         [self handleSyncPData:newMessage];
     }
-
+    
     if ([functionName isEqualToString:@"OnSystemRequest"]) {
         [self handleSystemRequest:dict];
     }
-
+    
     if ([functionName isEqualToString:@"SystemRequestResponse"]) {
         [self handleSystemRequestResponse:newMessage];
     }
-
+    
     // Formulate the name of the method to call and invoke the method on the delegate(s)
     NSString *handlerName = [NSString stringWithFormat:@"on%@:", functionName];
     SEL handlerSelector = NSSelectorFromString(handlerName);
     [self invokeMethodOnDelegates:handlerSelector withObject:newMessage];
-
+    
     // When an OnHMIStatus notification comes in, after passing it on (above), generate an "OnLockScreenNotification"
     if ([functionName isEqualToString:@"OnHMIStatus"]) {
         [self handleAfterHMIStatus:newMessage];
     }
-
+    
     // When an OnDriverDistraction notification comes in, after passing it on (above), generate an "OnLockScreenNotification"
     if ([functionName isEqualToString:@"OnDriverDistraction"]) {
         [self handleAfterDriverDistraction:newMessage];
@@ -317,12 +326,12 @@ static float DefaultConnectionTimeout = 45.0;
 
 - (void)handleRegisterAppInterfaceResponse:(SDLRPCResponse *)response {
     SDLRegisterAppInterfaceResponse *registerResponse = (SDLRegisterAppInterfaceResponse *)response;
-
+    
     self.protocol.securityManager = [self securityManagerForMake:registerResponse.vehicleType.make];
     if (self.protocol.securityManager && [self.protocol.securityManager respondsToSelector:@selector(setAppId:)]) {
         self.protocol.securityManager.appId = self.appId;
     }
-
+    
     if ([SDLGlobals sharedGlobals].majorProtocolVersion >= 4) {
         [self sendMobileHMIState];
         // Send SDL updates to application state
@@ -334,11 +343,11 @@ static float DefaultConnectionTimeout = 45.0;
 - (void)handleSyncPData:(SDLRPCMessage *)message {
     // If URL != nil, perform HTTP Post and don't pass the notification to proxy listeners
     SDLLogV(@"OnEncodedSyncPData: %@", message);
-
+    
     NSString *urlString = (NSString *)[message getParameters:@"URL"];
     NSDictionary<NSString *, id> *encodedSyncPData = (NSDictionary<NSString *, id> *)[message getParameters:@"data"];
     NSNumber *encodedSyncPTimeout = (NSNumber *)[message getParameters:@"Timeout"];
-
+    
     if (urlString && encodedSyncPData && encodedSyncPTimeout) {
         [self sendEncodedSyncPData:encodedSyncPData toURL:urlString withTimeout:encodedSyncPTimeout];
     }
@@ -346,10 +355,10 @@ static float DefaultConnectionTimeout = 45.0;
 
 - (void)handleSystemRequest:(NSDictionary<NSString *, id> *)dict {
     SDLLogV(@"OnSystemRequest");
-
+    
     SDLOnSystemRequest *systemRequest = [[SDLOnSystemRequest alloc] initWithDictionary:[dict mutableCopy]];
     SDLRequestType requestType = systemRequest.requestType;
-
+    
     // Handle the various OnSystemRequest types
     if ([requestType isEqualToEnum:SDLRequestTypeProprietary]) {
         [self handleSystemRequestProprietary:systemRequest];
@@ -371,7 +380,7 @@ static float DefaultConnectionTimeout = 45.0;
 - (void)handleAfterHMIStatus:(SDLRPCMessage *)message {
     SDLHMILevel hmiLevel = (SDLHMILevel)[message getParameters:SDLNameHMILevel];
     _lsm.hmiLevel = hmiLevel;
-
+    
     SEL callbackSelector = NSSelectorFromString(@"onOnLockScreenNotification:");
     [self invokeMethodOnDelegates:callbackSelector withObject:_lsm.lockScreenStatusNotification];
 }
@@ -380,7 +389,7 @@ static float DefaultConnectionTimeout = 45.0;
     NSString *stateString = (NSString *)[message getParameters:SDLNameState];
     BOOL state = [stateString isEqualToString:@"DD_ON"] ? YES : NO;
     _lsm.driverDistracted = state;
-
+    
     SEL callbackSelector = NSSelectorFromString(@"onOnLockScreenNotification:");
     [self invokeMethodOnDelegates:callbackSelector withObject:_lsm.lockScreenStatusNotification];
 }
@@ -408,11 +417,11 @@ static float DefaultConnectionTimeout = 45.0;
     if (JSONDictionary == nil || request.url == nil) {
         return;
     }
-
+    
     NSDictionary<NSString *, id> *requestData = JSONDictionary[@"HTTPRequest"];
     NSString *bodyString = requestData[@"body"];
     NSData *bodyData = [bodyString dataUsingEncoding:NSUTF8StringEncoding];
-
+    
     // Parse and display the policy data.
     SDLPolicyDataParser *pdp = [[SDLPolicyDataParser alloc] init];
     NSData *policyData = [pdp unwrap:bodyData];
@@ -420,31 +429,31 @@ static float DefaultConnectionTimeout = 45.0;
         [pdp parsePolicyData:policyData];
         SDLLogV(@"Policy data received");
     }
-
+    
     // Send the HTTP Request
     __weak typeof(self) weakSelf = self;
     [self uploadForBodyDataDictionary:JSONDictionary
                             URLString:request.url
                     completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-                         __strong typeof(weakSelf) strongSelf = weakSelf;
-
+                        __strong typeof(weakSelf) strongSelf = weakSelf;
+                        
                         if (error) {
                             SDLLogW(@"OnSystemRequest HTTP response error: %@", error);
                             return;
                         }
-
+                        
                         if (data == nil || data.length == 0) {
                             SDLLogW(@"OnSystemRequest HTTP response error: no data received");
                             return;
                         }
-
+                        
                         // Create the SystemRequest RPC to send to module.
                         SDLLogV(@"OnSystemRequest HTTP response");
                         SDLSystemRequest *request = [[SDLSystemRequest alloc] init];
                         request.correlationID = [NSNumber numberWithInt:PoliciesCorrelationId];
                         request.requestType = SDLRequestTypeProprietary;
                         request.bulkData = data;
-
+                        
                         // Parse and display the policy data.
                         SDLPolicyDataParser *pdp = [[SDLPolicyDataParser alloc] init];
                         NSData *policyData = [pdp unwrap:data];
@@ -452,19 +461,23 @@ static float DefaultConnectionTimeout = 45.0;
                             [pdp parsePolicyData:policyData];
                             SDLLogV(@"Cloud policy data: %@", pdp);
                         }
-
+                        
                         // Send the RPC Request
                         [strongSelf sendRPC:request];
                     }];
 }
 
 - (void)handleSystemRequestLockScreenIconURL:(SDLOnSystemRequest *)request {
-	__weak typeof(self) weakSelf = self;
+    __weak typeof(self) weakSelf = self;
     [self sdl_sendDataTaskWithURL:[NSURL URLWithString:request.url]
                 completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-					__strong typeof(weakSelf) strongSelf = weakSelf;
+                    __strong typeof(weakSelf) strongSelf = weakSelf;
                     if (error != nil) {
                         SDLLogW(@"OnSystemRequest (lock screen icon) HTTP download task failed: %@", error.localizedDescription);
+                        return;
+                    }
+                    
+                    if (data.length == 0){
                         return;
                     }
                     
@@ -478,35 +491,35 @@ static float DefaultConnectionTimeout = 45.0;
         // TODO: not sure how we want to handle http requests that don't have bulk data (maybe as GET?)
         return;
     }
-
+    
     __weak typeof(self) weakSelf = self;
     [self sdl_uploadData:request.bulkData
-              toURLString:request.url
-        completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-            __strong typeof(weakSelf) strongSelf = weakSelf;
-            if (error != nil) {
-                SDLLogW(@"OnSystemRequest (HTTP) error: %@", error.localizedDescription);
-                return;
-            }
-
-            if (data.length == 0) {
-                SDLLogW(@"OnSystemRequest (HTTP) error: no data returned");
-                return;
-            }
-
-            // Show the HTTP response
-            SDLLogV(@"OnSystemRequest (HTTP) response: %@", response);
-
-            // Create the SystemRequest RPC to send to module.
-            SDLPutFile *putFile = [[SDLPutFile alloc] init];
-            putFile.fileType = SDLFileTypeJSON;
-            putFile.correlationID = @(PoliciesCorrelationId);
-            putFile.syncFileName = @"response_data";
-            putFile.bulkData = data;
-
-            // Send RPC Request
-            [strongSelf sendRPC:putFile];
-        }];
+             toURLString:request.url
+       completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+           __strong typeof(weakSelf) strongSelf = weakSelf;
+           if (error != nil) {
+               SDLLogW(@"OnSystemRequest (HTTP) error: %@", error.localizedDescription);
+               return;
+           }
+           
+           if (data.length == 0) {
+               SDLLogW(@"OnSystemRequest (HTTP) error: no data returned");
+               return;
+           }
+           
+           // Show the HTTP response
+           SDLLogV(@"OnSystemRequest (HTTP) response: %@", response);
+           
+           // Create the SystemRequest RPC to send to module.
+           SDLPutFile *putFile = [[SDLPutFile alloc] init];
+           putFile.fileType = SDLFileTypeJSON;
+           putFile.correlationID = @(PoliciesCorrelationId);
+           putFile.syncFileName = @"response_data";
+           putFile.bulkData = data;
+           
+           // Send RPC Request
+           [strongSelf sendRPC:putFile];
+       }];
 }
 
 /**
@@ -519,18 +532,18 @@ static float DefaultConnectionTimeout = 45.0;
 - (nullable NSDictionary<NSString *, id> *)validateAndParseSystemRequest:(SDLOnSystemRequest *)request {
     NSString *urlString = request.url;
     SDLFileType fileType = request.fileType;
-
+    
     // Validate input
     if (urlString == nil || [NSURL URLWithString:urlString] == nil) {
         SDLLogW(@"OnSystemRequest validation failure: URL is nil");
         return nil;
     }
-
+    
     if (![fileType isEqualToEnum:SDLFileTypeJSON]) {
         SDLLogW(@"OnSystemRequest validation failure: file type is not JSON");
         return nil;
     }
-
+    
     // Get data dictionary from the bulkData
     NSError *error = nil;
     NSDictionary<NSString *, id> *JSONDictionary = [NSJSONSerialization JSONObjectWithData:request.bulkData options:kNilOptions error:&error];
@@ -538,7 +551,7 @@ static float DefaultConnectionTimeout = 45.0;
         SDLLogW(@"OnSystemRequest validation failure: data is not valid JSON");
         return nil;
     }
-
+    
     return JSONDictionary;
 }
 
@@ -555,9 +568,9 @@ static float DefaultConnectionTimeout = 45.0;
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
     [request setValue:@"application/json" forHTTPHeaderField:@"content-type"];
     request.HTTPMethod = @"POST";
-
+    
     SDLLogV(@"OnSystemRequest (HTTP) upload task created for URL: %@", urlString);
-
+    
     // Create the upload task
     [self sdl_sendUploadRequest:request withData:data completionHandler:completionHandler];
 }
@@ -573,7 +586,7 @@ static float DefaultConnectionTimeout = 45.0;
     NSParameterAssert(dictionary != nil);
     NSParameterAssert(urlString != nil);
     NSParameterAssert(completionHandler != NULL);
-
+    
     // Extract data from the dictionary
     NSDictionary<NSString *, id> *requestData = dictionary[@"HTTPRequest"];
     NSDictionary *headers = requestData[@"headers"];
@@ -582,16 +595,16 @@ static float DefaultConnectionTimeout = 45.0;
     NSString *method = headers[@"RequestMethod"];
     NSString *bodyString = requestData[@"body"];
     NSData *bodyData = [bodyString dataUsingEncoding:NSUTF8StringEncoding];
-
+    
     // NSURLRequest configuration
     NSURL *url = [NSURL URLWithString:urlString];
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
     [request setValue:contentType forHTTPHeaderField:@"content-type"];
     request.timeoutInterval = timeout;
     request.HTTPMethod = method;
-
+    
     SDLLogV(@"OnSystemRequest (Proprietary) upload task created for URL: %@", urlString);
-
+    
     // Create the upload task
     [self sdl_sendUploadRequest:request withData:bodyData completionHandler:completionHandler];
 }
@@ -651,7 +664,7 @@ static float DefaultConnectionTimeout = 45.0;
     request.HTTPMethod = @"POST";
     [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
     request.timeoutInterval = 60;
-
+    
     // Prepare the data in the required format
     NSString *encodedSyncPDataString = [[NSString stringWithFormat:@"%@", encodedSyncPData] componentsSeparatedByString:@"\""][1];
     NSArray<NSString *> *array = [NSArray arrayWithObject:encodedSyncPDataString];
@@ -662,15 +675,15 @@ static float DefaultConnectionTimeout = 45.0;
         SDLLogW(@"Error attempting to create SyncPData for HTTP request: %@", JSONSerializationError);
         return;
     }
-
+    
     // Send the HTTP Request
     __weak typeof(self) weakSelf = self;
     [[self.urlSession uploadTaskWithRequest:request
                                    fromData:data
                           completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-                                           [weakSelf syncPDataNetworkRequestCompleteWithData:data response:response error:error];
-                                       }] resume];
-
+                              [weakSelf syncPDataNetworkRequestCompleteWithData:data response:response error:error];
+                          }] resume];
+    
     SDLLogV(@"OnEncodedSyncPData (HTTP Request)");
 }
 
@@ -678,13 +691,13 @@ static float DefaultConnectionTimeout = 45.0;
 - (void)syncPDataNetworkRequestCompleteWithData:(NSData *)data response:(NSURLResponse *)response error:(NSError *)error {
     // Sample of response: {"data":["SDLKGLSDKFJLKSjdslkfjslkJLKDSGLKSDJFLKSDJF"]}
     SDLLogV(@"OnEncodedSyncPData (HTTP Response): %@", response);
-
+    
     // Validate response data.
     if (data == nil || data.length == 0) {
         SDLLogW(@"OnEncodedSyncPData (HTTP Response): no data returned");
         return;
     }
-
+    
     // Convert data to RPCRequest
     NSError *JSONConversionError = nil;
     NSDictionary<NSString *, id> *responseDictionary = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&JSONConversionError];
@@ -692,7 +705,7 @@ static float DefaultConnectionTimeout = 45.0;
         SDLEncodedSyncPData *request = [[SDLEncodedSyncPData alloc] init];
         request.correlationID = [NSNumber numberWithInt:PoliciesCorrelationId];
         request.data = [responseDictionary objectForKey:@"data"];
-
+        
         [self sendRPC:request];
     }
 }
@@ -703,7 +716,7 @@ static float DefaultConnectionTimeout = 45.0;
     inputStream.delegate = self;
     objc_setAssociatedObject(inputStream, @"SDLPutFile", putFileRPCRequest, OBJC_ASSOCIATION_RETAIN);
     objc_setAssociatedObject(inputStream, @"BaseOffset", [putFileRPCRequest offset], OBJC_ASSOCIATION_RETAIN);
-
+    
     [inputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
     [inputStream open];
 }
@@ -713,29 +726,29 @@ static float DefaultConnectionTimeout = 45.0;
         case NSStreamEventHasBytesAvailable: {
             // Grab some bytes from the stream and send them in a SDLPutFile RPC Request
             NSUInteger currentStreamOffset = [[stream propertyForKey:NSStreamFileCurrentOffsetKey] unsignedIntegerValue];
-
+            
             NSMutableData *buffer = [NSMutableData dataWithLength:[[SDLGlobals sharedGlobals] mtuSizeForServiceType:SDLServiceTypeRPC]];
             NSUInteger nBytesRead = [(NSInputStream *)stream read:(uint8_t *)buffer.mutableBytes maxLength:buffer.length];
             if (nBytesRead > 0) {
                 NSData *data = [buffer subdataWithRange:NSMakeRange(0, nBytesRead)];
                 NSUInteger baseOffset = [(NSNumber *)objc_getAssociatedObject(stream, @"BaseOffset") unsignedIntegerValue];
                 NSUInteger newOffset = baseOffset + currentStreamOffset;
-
+                
                 SDLPutFile *putFileRPCRequest = (SDLPutFile *)objc_getAssociatedObject(stream, @"SDLPutFile");
                 [putFileRPCRequest setOffset:[NSNumber numberWithUnsignedInteger:newOffset]];
                 [putFileRPCRequest setLength:[NSNumber numberWithUnsignedInteger:nBytesRead]];
                 [putFileRPCRequest setBulkData:data];
-
+                
                 [self sendRPC:putFileRPCRequest];
             }
-
+            
             break;
         }
         case NSStreamEventEndEncountered: {
             // Cleanup the stream
             [stream close];
             [stream removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-
+            
             break;
         }
         case NSStreamEventErrorOccurred: {
@@ -751,3 +764,4 @@ static float DefaultConnectionTimeout = 45.0;
 @end
 
 NS_ASSUME_NONNULL_END
+

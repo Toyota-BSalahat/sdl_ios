@@ -11,6 +11,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 typedef void (^SessionCompletionHandler)(BOOL success);
+typedef void (^SendCompletionHandler)(void);
 
 @interface SDLIAPSession : NSObject
 

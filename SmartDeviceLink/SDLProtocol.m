@@ -350,7 +350,11 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)processMessages {
     UInt8 incomingVersion = [SDLProtocolHeader determineVersion:self.receiveBuffer];
 
-    // If we have enough bytes, create the header.
+    // If we have enough bytes, create the header as long as the version is valid
+    if (![SDLProtocolHeader isValidVersion:incomingVersion]) {
+        return;
+    }
+    
     SDLProtocolHeader *header = [SDLProtocolHeader headerForVersion:incomingVersion];
     NSUInteger headerSize = header.size;
     if (self.receiveBuffer.length >= headerSize) {

@@ -24,17 +24,20 @@ NSString *const IndexedProtocolStringPrefix = @"com.smartdevicelink.prot";
 NSString *const MultiSessionProtocolString = @"com.smartdevicelink.multisession";
 NSString *const BackgroundTaskName = @"com.sdl.transport.iap.backgroundTask";
 
-int const CreateSessionRetries = 1;
-int const ProtocolIndexTimeoutSeconds = 20;
+int const createSessionRetries = 3;
+int const protocolIndexTimeoutSeconds = 10;
+int const streamOpenTimeoutSeconds = 2;
+int const controlSessionRetryOffsetSeconds = 2;
 
 @interface SDLIAPTransport () {
     BOOL _alreadyDestructed;
 }
 
-@property (assign, nonatomic) int retryCounter;
-@property (assign, nonatomic) BOOL sessionSetupInProgress;
+@property (assign) int retryCounter;
+@property (assign) BOOL sessionSetupInProgress;
+@property (assign) BOOL listeningForEvents;
+@property (strong) SDLTimer *protocolIndexTimer;
 @property (nonatomic, assign) UIBackgroundTaskIdentifier backgroundTaskId;
-@property (nullable, strong, nonatomic) SDLTimer *protocolIndexTimer;
 
 @end
 
@@ -49,12 +52,11 @@ int const ProtocolIndexTimeoutSeconds = 20;
         _session = nil;
         _controlSession = nil;
         _retryCounter = 0;
+        _sessionSetupInProgress = NO;
+        _listeningForEvents = NO;
         _protocolIndexTimer = nil;
         
-        // Get notifications if an accessory connects in future
-        [self sdl_startEventListening];
-        
-        // Wait for setup to complete before scanning for accessories
+        self.state = SDLTransportStateDisconnected;
     }
     
     return self;
@@ -120,6 +122,7 @@ int const ProtocolIndexTimeoutSeconds = 20;
                                                object:nil];
     
     [[EAAccessoryManager sharedAccessoryManager] registerForLocalNotifications];
+    self.listeningForEvents = YES;
 }
 
 /**
@@ -128,6 +131,8 @@ int const ProtocolIndexTimeoutSeconds = 20;
 - (void)sdl_stopEventListening {
     SDLLogV(@"SDLIAPTransport stopped listening for events");
     [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [[EAAccessoryManager sharedAccessoryManager] unregisterForLocalNotifications];
+    self.listeningForEvents = NO;
 }
 
 
@@ -139,7 +144,7 @@ int const ProtocolIndexTimeoutSeconds = 20;
  *  @param notification Contains information about the connected accessory
  */
 - (void)sdl_accessoryConnected:(NSNotification *)notification {
-    EAAccessory *accessory = notification.userInfo[EAAccessoryKey];
+    EAAccessory *accessory = notification.userInfo[EAAccessoryKey]; //FIXME comment this out
     
     double retryDelay = self.retryDelay;
     SDLLogD(@"Accessory Connected (%@), Opening in %0.03fs", notification.userInfo[EAAccessoryKey], retryDelay);
@@ -150,7 +155,7 @@ int const ProtocolIndexTimeoutSeconds = 20;
     }
     
     self.retryCounter = 0;
-    [self performSelector:@selector(sdl_connect:) withObject:accessory afterDelay:retryDelay];
+    [self performSelector:@selector(sdl_connect:) withObject:accessory afterDelay:retryDelay]; //FIXME send nil instead
 }
 
 /**
@@ -158,17 +163,40 @@ int const ProtocolIndexTimeoutSeconds = 20;
  *
  *  @param notification Contains information about the connected accessory
  */
+- (BOOL)accessoryIsOurs:(EAAccessory *)accessory{
+    SDLIAPSession *activeSession = nil;
+    if (self.controlSession){
+        activeSession = self.controlSession;
+    }
+    else{
+        activeSession = self.session;
+    }
+    
+    if (activeSession){
+        if (accessory.connectionID == activeSession.accessory.connectionID ||
+            [accessory.serialNumber isEqualToString:activeSession.accessory.serialNumber]){
+            return YES;
+        }
+    }
+    else{
+        if ([accessory supportsProtocol:@"com.smartdevicelink.prot0"]){
+            return YES;
+        }
+    }
+    
+    return NO;
+}
+
 - (void)sdl_accessoryDisconnected:(NSNotification *)notification {
     EAAccessory *accessory = [notification.userInfo objectForKey:EAAccessoryKey];
-    if (accessory.connectionID != self.session.accessory.connectionID) {
-        SDLLogD(@"Accessory disconnected event (%@)", accessory);
-    }
-    if ([accessory.serialNumber isEqualToString:self.session.accessory.serialNumber]) {
-        SDLLogD(@"Connected accessory disconnected event");
+    if ([self accessoryIsOurs:accessory]){
+        [self disconnect];
         self.retryCounter = 0;
         self.sessionSetupInProgress = NO;
-        [self disconnect];
         [self.delegate onTransportDisconnected];
+    }
+    else{
+        SDLLogW(@"Accessory is not ours, ignoring!!!");
     }
 }
 
@@ -184,7 +212,6 @@ int const ProtocolIndexTimeoutSeconds = 20;
 - (void)sdl_applicationWillEnterForeground:(NSNotification *)notification {
     SDLLogV(@"App foregrounded, attempting connection");
     [self sdl_backgroundTaskEnd];
-    self.retryCounter = 0;
     [self connect];
 }
 
@@ -195,12 +222,24 @@ int const ProtocolIndexTimeoutSeconds = 20;
  */
 - (void)sdl_applicationDidEnterBackground:(NSNotification *)notification {
     SDLLogV(@"App backgrounded, starting background task");
-    [self sdl_backgroundTaskStart];
+    if (self.sessionSetupInProgress){
+        [self sdl_backgroundTaskStart];
+    }
 }
 
 #pragma mark - Stream Lifecycle
 
 - (void)connect {
+    if (!self.listeningForEvents) {
+        [self sdl_startEventListening];
+    }
+    
+    UIApplicationState state = [UIApplication sharedApplication].applicationState;
+    if (state != UIApplicationStateActive){
+        SDLLogW(@"App inactive on connect, starting background task");
+        [self sdl_backgroundTaskStart];
+    }
+    
     [self sdl_connect:nil];
 }
 
@@ -210,9 +249,14 @@ int const ProtocolIndexTimeoutSeconds = 20;
  *  @param accessory The accessory to attempt connection with or nil to scan for accessories.
  */
 - (void)sdl_connect:(nullable EAAccessory *)accessory {
-    if (!self.session && !self.sessionSetupInProgress) {
-        // We don't have a session are not attempting to set one up, attempt to connect
-        SDLLogV(@"Session not setup, starting setup");
+    self.state = SDLTransportStateConnecting;
+    BOOL isDataSessionEstablished = (self.session && !self.session.stopped);
+    
+    if (!isDataSessionEstablished && !self.sessionSetupInProgress) {
+        // reset counter when this is triggered from -sdl_accessoryConnected:
+        if (accessory) {
+            self.retryCounter = 0;
+        }
         self.sessionSetupInProgress = YES;
         [self sdl_establishSessionWithAccessory:accessory];
     } else if (self.session) {
@@ -240,6 +284,7 @@ int const ProtocolIndexTimeoutSeconds = 20;
         self.session.streamDelegate = nil;
         self.session = nil;
     }
+    self.state = SDLTransportStateDisconnected;
 }
 
 
@@ -259,7 +304,7 @@ int const ProtocolIndexTimeoutSeconds = 20;
         NSAssert(NO, @"Some SDL protocol strings are not supported, check the README for all strings that must be included in your info.plist file. Missing string: %@", failedString);
         return connecting;
     }
-
+    
     if ([accessory supportsProtocol:MultiSessionProtocolString] && SDL_SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"9")) {
         [self sdl_createIAPDataSessionWithAccessory:accessory forProtocol:MultiSessionProtocolString];
         connecting = YES;
@@ -275,27 +320,27 @@ int const ProtocolIndexTimeoutSeconds = 20;
 
 /**
  Check all required protocol strings in the info.plist dictionary.
-
+ 
  @return A missing protocol string or nil if all strings are supported.
  */
 + (nullable NSString *)sdl_supportsRequiredProtocolStrings {
     NSArray<NSString *> *protocolStrings = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"UISupportedExternalAccessoryProtocols"];
-
+    
     if (![protocolStrings containsObject:MultiSessionProtocolString]) {
         return MultiSessionProtocolString;
     }
-
+    
     if (![protocolStrings containsObject:LegacyProtocolString]) {
         return LegacyProtocolString;
     }
-
+    
     for (int i = 0; i < 30; i++) {
         NSString *indexedProtocolString = [NSString stringWithFormat:@"%@%i", IndexedProtocolStringPrefix, i];
         if (![protocolStrings containsObject:indexedProtocolString]) {
             return indexedProtocolString;
         }
     }
-
+    
     return nil;
 }
 
@@ -306,7 +351,7 @@ int const ProtocolIndexTimeoutSeconds = 20;
  */
 - (void)sdl_establishSessionWithAccessory:(nullable EAAccessory *)accessory {
     SDLLogD(@"Attempting to connect");
-    if (self.retryCounter < CreateSessionRetries) {
+    if (self.retryCounter < createSessionRetries) {
         // We should be attempting to connect
         self.retryCounter++;
         
@@ -316,7 +361,7 @@ int const ProtocolIndexTimeoutSeconds = 20;
             // Connection underway, exit
             return;
         }
-
+        
         if ([self.class sdl_supportsRequiredProtocolStrings] != nil) {
             NSString *failedString = [self.class sdl_supportsRequiredProtocolStrings];
             SDLLogE(@"A required External Accessory protocol string is missing from the info.plist: %@", failedString);
@@ -335,11 +380,20 @@ int const ProtocolIndexTimeoutSeconds = 20;
             // No compatible accessory
             SDLLogV(@"No accessory supporting SDL was found, dismissing setup");
             self.sessionSetupInProgress = NO;
+            self.state = SDLTransportStateNoSDLService;
+            if (self.delegate && [self.delegate respondsToSelector:@selector(onTransportFailed)]){
+                [self.delegate onTransportFailed];
+            }
         }
         
     } else {
         // We are beyond the number of retries allowed
+        self.state = SDLTransportStateConnectFailed;
         SDLLogW(@"Surpassed allowed retry attempts");
+        self.state = SDLTransportStateConnectFailed;
+        if (self.delegate && [self.delegate respondsToSelector:@selector(onTransportFailed)]){
+            [self.delegate onTransportFailed];
+        }
         self.sessionSetupInProgress = NO;
     }
 }
@@ -352,7 +406,7 @@ int const ProtocolIndexTimeoutSeconds = 20;
         self.controlSession.delegate = self;
         
         if (self.protocolIndexTimer == nil) {
-            self.protocolIndexTimer = [[SDLTimer alloc] initWithDuration:ProtocolIndexTimeoutSeconds repeat:NO];
+            self.protocolIndexTimer = [[SDLTimer alloc] initWithDuration:protocolIndexTimeoutSeconds repeat:NO];
         } else {
             [self.protocolIndexTimer cancel];
         }
@@ -379,7 +433,10 @@ int const ProtocolIndexTimeoutSeconds = 20;
             SDLLogW(@"Control session failed to setup (%@)", accessory);
             self.controlSession.streamDelegate = nil;
             self.controlSession = nil;
-            [self sdl_retryEstablishSession];
+            
+            double retryDelay = [self retryDelayWithMinValue:1.5 maxValue:5.5];
+            SDLLogW(@"Retry control session in %0.03fs", retryDelay);
+            [self sdl_retryEstablishSessionWithDelay:retryDelay];
         }
     } else {
         SDLLogW(@"Failed to setup control session (%@)", accessory);
@@ -412,6 +469,10 @@ int const ProtocolIndexTimeoutSeconds = 20;
 }
 
 - (void)sdl_retryEstablishSession {
+    [self sdl_retryEstablishSessionWithDelay:0];
+}
+
+- (void)sdl_retryEstablishSessionWithDelay:(double)delay {
     // Current strategy disallows automatic retries.
     self.sessionSetupInProgress = NO;
     if (self.session != nil) {
@@ -419,10 +480,12 @@ int const ProtocolIndexTimeoutSeconds = 20;
         self.session.delegate = nil;
         self.session = nil;
     }
-    
-    // Search connected accessories
-    self.retryCounter = 0;
-    [self sdl_connect:nil];
+    // No accessory to use this time, search connected accessories
+    if (delay > 0) {
+        [self performSelector:@selector(sdl_connect:) withObject:nil afterDelay:delay];
+    } else {
+        [self sdl_connect:nil];
+    }
 }
 
 // This gets called after both I/O streams of the session have opened.
@@ -430,7 +493,11 @@ int const ProtocolIndexTimeoutSeconds = 20;
     // Control Session Opened
     if ([ControlProtocolString isEqualToString:session.protocol]) {
         SDLLogD(@"Control Session Established");
-        [self.protocolIndexTimer start];
+        [self.protocolIndexTimer start]; //FIXME comment out
+        
+        /*if (!self.session) {
+            [self.protocolIndexTimer start]
+        }*/ //FIXME uncomment
     }
     
     // Data Session Opened
@@ -479,9 +546,12 @@ int const ProtocolIndexTimeoutSeconds = 20;
         if (strongSelf.controlSession != nil) {
             [strongSelf.protocolIndexTimer cancel];
             [strongSelf.controlSession stop];
+            
+            double retryDelay = [self retryDelayWithMinValue:1.5 maxValue:5.5];
+            SDLLogW(@"Retry control session in %0.03fs", retryDelay);
             strongSelf.controlSession.streamDelegate = nil;
             strongSelf.controlSession = nil;
-            [strongSelf sdl_retryEstablishSession];
+            [strongSelf sdl_retryEstablishSessionWithDelay:retryDelay];
         }
     };
 }
@@ -506,7 +576,7 @@ int const ProtocolIndexTimeoutSeconds = 20;
         SDLLogD(@"Control Stream will switch to protocol %@", indexedProtocolString);
         
         // Destroy the control session
-        [strongSelf.protocolIndexTimer cancel];
+        [strongSelf.protocolIndexTimer cancel]; //FIXME comment out
         dispatch_sync(dispatch_get_main_queue(), ^{
             [strongSelf.controlSession stop];
             strongSelf.controlSession.streamDelegate = nil;
@@ -517,6 +587,7 @@ int const ProtocolIndexTimeoutSeconds = 20;
             dispatch_async(dispatch_get_main_queue(), ^{
                 self.retryCounter = 0;
                 [strongSelf sdl_createIAPDataSessionWithAccessory:accessory forProtocol:indexedProtocolString];
+                //[strongSelf.protocolIndexTimer cancel]; FIXME: uncomment
             });
         }
     };
@@ -531,9 +602,12 @@ int const ProtocolIndexTimeoutSeconds = 20;
         
         [strongSelf.protocolIndexTimer cancel];
         [strongSelf.controlSession stop];
+        
+        double retryDelay = controlSessionRetryOffsetSeconds + self.retryDelay;
+        SDLLogW(@"Retry control session in %0.03fs", retryDelay);
         strongSelf.controlSession.streamDelegate = nil;
         strongSelf.controlSession = nil;
-        [strongSelf sdl_retryEstablishSession];
+        [strongSelf sdl_retryEstablishSessionWithDelay:retryDelay];
     };
 }
 
@@ -571,7 +645,7 @@ int const ProtocolIndexTimeoutSeconds = 20;
             NSInteger bytesRead = [istream read:buf maxLength:[[SDLGlobals sharedGlobals] mtuSizeForServiceType:SDLServiceTypeRPC]];
             NSData *dataIn = [NSData dataWithBytes:buf length:bytesRead];
             SDLLogBytes(dataIn, SDLLogBytesDirectionReceive);
-
+            
             if (bytesRead > 0) {
                 [strongSelf.delegate onDataReceived:dataIn];
             } else {
@@ -598,52 +672,45 @@ int const ProtocolIndexTimeoutSeconds = 20;
     };
 }
 
-- (double)retryDelay {
-    const double MinRetrySeconds = 1.5;
-    const double MaxRetrySeconds = 9.5;
-    double RetryRangeSeconds = MaxRetrySeconds - MinRetrySeconds;
+- (double)retryDelayWithMinValue:(double)min maxValue:(double)max{
+    const double min_value = min;
+    const double max_value = max;
+    double range_length = max_value - min_value;
+    double delay = min_value;
+    UInt64 randomLong;
     
-    static double appDelaySeconds = 0;
-    
-    // HAX: This pull the app name and hashes it in an attempt to provide a more even distribution of retry delays. The evidence that this does so is anecdotal. A more ideal solution would be to use a list of known, installed SDL apps on the phone to try and deterministically generate an even delay.
-    if (appDelaySeconds == 0) {
-        NSString *appName = [[NSProcessInfo processInfo] processName];
-        if (appName == nil) {
-            appName = @"noname";
-        }
-        
-        // Run the app name through an md5 hasher
-        const char *ptr = [appName UTF8String];
-        unsigned char md5Buffer[CC_MD5_DIGEST_LENGTH];
-        CC_MD5(ptr, (unsigned int)strlen(ptr), md5Buffer);
-        
-        // Generate a string of the hex hash
-        NSMutableString *output = [NSMutableString stringWithString:@"0x"];
-        for (int i = 0; i < 8; i++) {
-            [output appendFormat:@"%02X", md5Buffer[i]];
-        }
-        
+    int ret = SecRandomCopyBytes(kSecRandomDefault, sizeof(UInt64), (uint8_t *)&randomLong);
+    if (ret == 0){
         // Transform the string into a number between 0 and 1
-        unsigned long long firstHalf;
-        NSScanner *pScanner = [NSScanner scannerWithString:output];
-        [pScanner scanHexLongLong:&firstHalf];
-        double hashBasedValueInRange0to1 = ((double)firstHalf) / 0xffffffffffffffff;
+        double randomValueInRange0to1 = ((double)randomLong) / 0xffffffffffffffff;
         
         // Transform the number into a number between min and max
-        appDelaySeconds = ((RetryRangeSeconds * hashBasedValueInRange0to1) + MinRetrySeconds);
+        delay = ((range_length * randomValueInRange0to1) + min_value);
+        
     }
     
-    return appDelaySeconds;
+    return delay;
 }
 
+- (double)retryDelay{
+    return [self retryDelayWithMinValue:1.5 maxValue:9.5];
+}
 
 #pragma mark - Lifecycle Destruction
 
 - (void)sdl_destructObjects {
     if (!_alreadyDestructed) {
+        [self sdl_backgroundTaskEnd];
+        [self sdl_stopEventListening];
+        [self disconnect];
         _alreadyDestructed = YES;
+        [self.protocolIndexTimer cancel];
+        self.controlSession.streamDelegate = nil;
         self.controlSession = nil;
-        self.session = nil;
+        if (self.session.isStopped){
+            self.session.streamDelegate = nil;
+            self.session = nil;
+        }
         self.delegate = nil;
         self.sessionSetupInProgress = NO;
     }
@@ -658,3 +725,4 @@ int const ProtocolIndexTimeoutSeconds = 20;
 @end
 
 NS_ASSUME_NONNULL_END
+

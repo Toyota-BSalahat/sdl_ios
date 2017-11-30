@@ -7,6 +7,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)onTransportConnected;
 - (void)onTransportDisconnected;
+- (void)onTransportFailed;
 - (void)onDataReceived:(NSData *)receivedData;
 
 @end

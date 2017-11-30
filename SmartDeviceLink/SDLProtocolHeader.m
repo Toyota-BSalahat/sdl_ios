@@ -7,6 +7,7 @@
 #import "SDLV2ProtocolHeader.h"
 
 NS_ASSUME_NONNULL_BEGIN
+UInt8 const kSDLProtocolHeaderInvalidVersion = 255;
 
 @implementation SDLProtocolHeader
 
@@ -39,6 +40,10 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSString *)description {
     NSString *description = [NSString stringWithFormat:@"<%@: %p>", NSStringFromClass([self class]), self];
     return description;
+}
+
++ (BOOL)isValidVersion:(UInt8)version {
+    return (version >= 1 && version <= 4);
 }
 
 + (__kindof SDLProtocolHeader *)headerForVersion:(UInt8)version {

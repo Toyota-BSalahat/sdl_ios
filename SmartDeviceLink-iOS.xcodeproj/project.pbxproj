@@ -1044,6 +1044,36 @@
 		8BBEA6091F324832003EEA26 /* SDLMetadataTypeSpec.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BBEA6081F324832003EEA26 /* SDLMetadataTypeSpec.m */; };
 		97E26DEC1E807AD70074A3C7 /* SDLMutableDataQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = 97E26DEA1E807AD70074A3C7 /* SDLMutableDataQueue.h */; };
 		97E26DED1E807AD70074A3C7 /* SDLMutableDataQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 97E26DEB1E807AD70074A3C7 /* SDLMutableDataQueue.m */; };
+		9E5A3B001FD6FEA1007731AA /* GCDWebServerResponse.h in Headers */ = {isa = PBXBuildFile; fileRef = 9E5A3AF41FD6FE9E007731AA /* GCDWebServerResponse.h */; };
+		9E5A3B021FD6FEA1007731AA /* GCDWebServerResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E5A3AF51FD6FE9E007731AA /* GCDWebServerResponse.m */; };
+		9E5A3B031FD6FEA1007731AA /* GCDWebServerConnection.h in Headers */ = {isa = PBXBuildFile; fileRef = 9E5A3AF61FD6FE9F007731AA /* GCDWebServerConnection.h */; };
+		9E5A3B051FD6FEA1007731AA /* GCDWebServer.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E5A3AF71FD6FE9F007731AA /* GCDWebServer.m */; };
+		9E5A3B061FD6FEA1007731AA /* GCDWebServerHTTPStatusCodes.h in Headers */ = {isa = PBXBuildFile; fileRef = 9E5A3AF81FD6FE9F007731AA /* GCDWebServerHTTPStatusCodes.h */; };
+		9E5A3B081FD6FEA1007731AA /* GCDWebServerConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E5A3AF91FD6FE9F007731AA /* GCDWebServerConnection.m */; };
+		9E5A3B091FD6FEA1007731AA /* GCDWebServer.h in Headers */ = {isa = PBXBuildFile; fileRef = 9E5A3AFA1FD6FEA0007731AA /* GCDWebServer.h */; };
+		9E5A3B0A1FD6FEA1007731AA /* GCDWebServerFunctions.h in Headers */ = {isa = PBXBuildFile; fileRef = 9E5A3AFB1FD6FEA0007731AA /* GCDWebServerFunctions.h */; };
+		9E5A3B0C1FD6FEA1007731AA /* GCDWebServerFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E5A3AFC1FD6FEA0007731AA /* GCDWebServerFunctions.m */; };
+		9E5A3B0D1FD6FEA1007731AA /* GCDWebServerRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 9E5A3AFD1FD6FEA0007731AA /* GCDWebServerRequest.h */; };
+		9E5A3B0F1FD6FEA1007731AA /* GCDWebServerRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E5A3AFE1FD6FEA1007731AA /* GCDWebServerRequest.m */; };
+		9E5A3B101FD6FEA1007731AA /* GCDWebServerPrivate.h in Headers */ = {isa = PBXBuildFile; fileRef = 9E5A3AFF1FD6FEA1007731AA /* GCDWebServerPrivate.h */; };
+		9E5A3B1A1FD6FEB0007731AA /* GCDWebServerURLEncodedFormRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E5A3B111FD6FEAE007731AA /* GCDWebServerURLEncodedFormRequest.m */; };
+		9E5A3B1B1FD6FEB0007731AA /* GCDWebServerDataRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 9E5A3B121FD6FEAE007731AA /* GCDWebServerDataRequest.h */; };
+		9E5A3B1C1FD6FEB0007731AA /* GCDWebServerMultiPartFormRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 9E5A3B131FD6FEAE007731AA /* GCDWebServerMultiPartFormRequest.h */; };
+		9E5A3B1E1FD6FEB0007731AA /* GCDWebServerDataRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E5A3B141FD6FEAE007731AA /* GCDWebServerDataRequest.m */; };
+		9E5A3B1F1FD6FEB0007731AA /* GCDWebServerURLEncodedFormRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 9E5A3B151FD6FEAF007731AA /* GCDWebServerURLEncodedFormRequest.h */; };
+		9E5A3B201FD6FEB0007731AA /* GCDWebServerFileRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 9E5A3B161FD6FEAF007731AA /* GCDWebServerFileRequest.h */; };
+		9E5A3B221FD6FEB0007731AA /* GCDWebServerMultiPartFormRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E5A3B171FD6FEAF007731AA /* GCDWebServerMultiPartFormRequest.m */; };
+		9E5A3B241FD6FEB0007731AA /* GCDWebServerFileRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E5A3B181FD6FEB0007731AA /* GCDWebServerFileRequest.m */; };
+		9E5A3B2D1FD6FEBC007731AA /* GCDWebServerFileResponse.h in Headers */ = {isa = PBXBuildFile; fileRef = 9E5A3B251FD6FEBA007731AA /* GCDWebServerFileResponse.h */; };
+		9E5A3B2E1FD6FEBC007731AA /* GCDWebServerDataResponse.h in Headers */ = {isa = PBXBuildFile; fileRef = 9E5A3B261FD6FEBA007731AA /* GCDWebServerDataResponse.h */; };
+		9E5A3B2F1FD6FEBC007731AA /* GCDWebServerErrorResponse.h in Headers */ = {isa = PBXBuildFile; fileRef = 9E5A3B271FD6FEBB007731AA /* GCDWebServerErrorResponse.h */; };
+		9E5A3B311FD6FEBC007731AA /* GCDWebServerDataResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E5A3B281FD6FEBB007731AA /* GCDWebServerDataResponse.m */; };
+		9E5A3B331FD6FEBC007731AA /* GCDWebServerErrorResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E5A3B291FD6FEBB007731AA /* GCDWebServerErrorResponse.m */; };
+		9E5A3B341FD6FEBC007731AA /* GCDWebServerStreamedResponse.h in Headers */ = {isa = PBXBuildFile; fileRef = 9E5A3B2A1FD6FEBB007731AA /* GCDWebServerStreamedResponse.h */; };
+		9E5A3B361FD6FEBC007731AA /* GCDWebServerFileResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E5A3B2B1FD6FEBC007731AA /* GCDWebServerFileResponse.m */; };
+		9E5A3B381FD6FEBC007731AA /* GCDWebServerStreamedResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E5A3B2C1FD6FEBC007731AA /* GCDWebServerStreamedResponse.m */; };
+		9E5A3B3C1FD6FF8D007731AA /* SDLProtocolIndexServer.h in Headers */ = {isa = PBXBuildFile; fileRef = 9E5A3B3A1FD6FF8D007731AA /* SDLProtocolIndexServer.h */; };
+		9E5A3B3E1FD6FF8D007731AA /* SDLProtocolIndexServer.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E5A3B3B1FD6FF8D007731AA /* SDLProtocolIndexServer.m */; };
 		DA0C46AD1DCD35080001F2A8 /* SDLNames.m in Sources */ = {isa = PBXBuildFile; fileRef = DA0C46AC1DCD35080001F2A8 /* SDLNames.m */; };
 		DA0C46AF1DCD41E30001F2A8 /* SDLMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = DA0C46AE1DCD41E30001F2A8 /* SDLMacros.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		DA318C1F1DD0F06C00C035AC /* NSMutableDictionary+Store.h in Headers */ = {isa = PBXBuildFile; fileRef = DA318C1D1DD0F06C00C035AC /* NSMutableDictionary+Store.h */; };
@@ -2262,6 +2292,36 @@
 		8BBEA6081F324832003EEA26 /* SDLMetadataTypeSpec.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SDLMetadataTypeSpec.m; sourceTree = "<group>"; };
 		97E26DEA1E807AD70074A3C7 /* SDLMutableDataQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SDLMutableDataQueue.h; sourceTree = "<group>"; };
 		97E26DEB1E807AD70074A3C7 /* SDLMutableDataQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SDLMutableDataQueue.m; sourceTree = "<group>"; };
+		9E5A3AF41FD6FE9E007731AA /* GCDWebServerResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerResponse.h; sourceTree = "<group>"; };
+		9E5A3AF51FD6FE9E007731AA /* GCDWebServerResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerResponse.m; sourceTree = "<group>"; };
+		9E5A3AF61FD6FE9F007731AA /* GCDWebServerConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerConnection.h; sourceTree = "<group>"; };
+		9E5A3AF71FD6FE9F007731AA /* GCDWebServer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServer.m; sourceTree = "<group>"; };
+		9E5A3AF81FD6FE9F007731AA /* GCDWebServerHTTPStatusCodes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerHTTPStatusCodes.h; sourceTree = "<group>"; };
+		9E5A3AF91FD6FE9F007731AA /* GCDWebServerConnection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerConnection.m; sourceTree = "<group>"; };
+		9E5A3AFA1FD6FEA0007731AA /* GCDWebServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServer.h; sourceTree = "<group>"; };
+		9E5A3AFB1FD6FEA0007731AA /* GCDWebServerFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerFunctions.h; sourceTree = "<group>"; };
+		9E5A3AFC1FD6FEA0007731AA /* GCDWebServerFunctions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerFunctions.m; sourceTree = "<group>"; };
+		9E5A3AFD1FD6FEA0007731AA /* GCDWebServerRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerRequest.h; sourceTree = "<group>"; };
+		9E5A3AFE1FD6FEA1007731AA /* GCDWebServerRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerRequest.m; sourceTree = "<group>"; };
+		9E5A3AFF1FD6FEA1007731AA /* GCDWebServerPrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerPrivate.h; sourceTree = "<group>"; };
+		9E5A3B111FD6FEAE007731AA /* GCDWebServerURLEncodedFormRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerURLEncodedFormRequest.m; sourceTree = "<group>"; };
+		9E5A3B121FD6FEAE007731AA /* GCDWebServerDataRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerDataRequest.h; sourceTree = "<group>"; };
+		9E5A3B131FD6FEAE007731AA /* GCDWebServerMultiPartFormRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerMultiPartFormRequest.h; sourceTree = "<group>"; };
+		9E5A3B141FD6FEAE007731AA /* GCDWebServerDataRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerDataRequest.m; sourceTree = "<group>"; };
+		9E5A3B151FD6FEAF007731AA /* GCDWebServerURLEncodedFormRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerURLEncodedFormRequest.h; sourceTree = "<group>"; };
+		9E5A3B161FD6FEAF007731AA /* GCDWebServerFileRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerFileRequest.h; sourceTree = "<group>"; };
+		9E5A3B171FD6FEAF007731AA /* GCDWebServerMultiPartFormRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerMultiPartFormRequest.m; sourceTree = "<group>"; };
+		9E5A3B181FD6FEB0007731AA /* GCDWebServerFileRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerFileRequest.m; sourceTree = "<group>"; };
+		9E5A3B251FD6FEBA007731AA /* GCDWebServerFileResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerFileResponse.h; sourceTree = "<group>"; };
+		9E5A3B261FD6FEBA007731AA /* GCDWebServerDataResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerDataResponse.h; sourceTree = "<group>"; };
+		9E5A3B271FD6FEBB007731AA /* GCDWebServerErrorResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerErrorResponse.h; sourceTree = "<group>"; };
+		9E5A3B281FD6FEBB007731AA /* GCDWebServerDataResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerDataResponse.m; sourceTree = "<group>"; };
+		9E5A3B291FD6FEBB007731AA /* GCDWebServerErrorResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerErrorResponse.m; sourceTree = "<group>"; };
+		9E5A3B2A1FD6FEBB007731AA /* GCDWebServerStreamedResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerStreamedResponse.h; sourceTree = "<group>"; };
+		9E5A3B2B1FD6FEBC007731AA /* GCDWebServerFileResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerFileResponse.m; sourceTree = "<group>"; };
+		9E5A3B2C1FD6FEBC007731AA /* GCDWebServerStreamedResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerStreamedResponse.m; sourceTree = "<group>"; };
+		9E5A3B3A1FD6FF8D007731AA /* SDLProtocolIndexServer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SDLProtocolIndexServer.h; sourceTree = "<group>"; };
+		9E5A3B3B1FD6FF8D007731AA /* SDLProtocolIndexServer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SDLProtocolIndexServer.m; sourceTree = "<group>"; };
 		DA0C46AC1DCD35080001F2A8 /* SDLNames.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SDLNames.m; sourceTree = "<group>"; };
 		DA0C46AE1DCD41E30001F2A8 /* SDLMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SDLMacros.h; sourceTree = "<group>"; };
 		DA318C1D1DD0F06C00C035AC /* NSMutableDictionary+Store.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSMutableDictionary+Store.h"; sourceTree = "<group>"; };
@@ -3067,6 +3127,8 @@
 				E9C32B8D1AB20BA200F283AF /* SDLStreamDelegate.m */,
 				5D61FBD81A84238B00846EE7 /* SDLTCPTransport.h */,
 				5D61FBD91A84238B00846EE7 /* SDLTCPTransport.m */,
+				9E5A3B3A1FD6FF8D007731AA /* SDLProtocolIndexServer.h */,
+				9E5A3B3B1FD6FF8D007731AA /* SDLProtocolIndexServer.m */,
 			);
 			name = Transport;
 			sourceTree = "<group>";
@@ -3790,6 +3852,7 @@
 		5D61FA1D1A84237100846EE7 /* SmartDeviceLink */ = {
 			isa = PBXGroup;
 			children = (
+				9E5A3B391FD6FED9007731AA /* GCDServer */,
 				5DA3F3511BC4477B0026F2D0 /* Developer API */,
 				5D5934F61A85189500687FB9 /* Utilities */,
 				5D5934F51A8516C800687FB9 /* Logging */,
@@ -4399,6 +4462,41 @@
 			name = Helpers;
 			sourceTree = "<group>";
 		};
+		9E5A3B391FD6FED9007731AA /* GCDServer */ = {
+			isa = PBXGroup;
+			children = (
+				9E5A3AFA1FD6FEA0007731AA /* GCDWebServer.h */,
+				9E5A3AF71FD6FE9F007731AA /* GCDWebServer.m */,
+				9E5A3AF61FD6FE9F007731AA /* GCDWebServerConnection.h */,
+				9E5A3AF91FD6FE9F007731AA /* GCDWebServerConnection.m */,
+				9E5A3AFB1FD6FEA0007731AA /* GCDWebServerFunctions.h */,
+				9E5A3AFC1FD6FEA0007731AA /* GCDWebServerFunctions.m */,
+				9E5A3AF81FD6FE9F007731AA /* GCDWebServerHTTPStatusCodes.h */,
+				9E5A3AFF1FD6FEA1007731AA /* GCDWebServerPrivate.h */,
+				9E5A3AFD1FD6FEA0007731AA /* GCDWebServerRequest.h */,
+				9E5A3AFE1FD6FEA1007731AA /* GCDWebServerRequest.m */,
+				9E5A3AF41FD6FE9E007731AA /* GCDWebServerResponse.h */,
+				9E5A3AF51FD6FE9E007731AA /* GCDWebServerResponse.m */,
+				9E5A3B121FD6FEAE007731AA /* GCDWebServerDataRequest.h */,
+				9E5A3B141FD6FEAE007731AA /* GCDWebServerDataRequest.m */,
+				9E5A3B161FD6FEAF007731AA /* GCDWebServerFileRequest.h */,
+				9E5A3B181FD6FEB0007731AA /* GCDWebServerFileRequest.m */,
+				9E5A3B131FD6FEAE007731AA /* GCDWebServerMultiPartFormRequest.h */,
+				9E5A3B171FD6FEAF007731AA /* GCDWebServerMultiPartFormRequest.m */,
+				9E5A3B151FD6FEAF007731AA /* GCDWebServerURLEncodedFormRequest.h */,
+				9E5A3B111FD6FEAE007731AA /* GCDWebServerURLEncodedFormRequest.m */,
+				9E5A3B261FD6FEBA007731AA /* GCDWebServerDataResponse.h */,
+				9E5A3B281FD6FEBB007731AA /* GCDWebServerDataResponse.m */,
+				9E5A3B271FD6FEBB007731AA /* GCDWebServerErrorResponse.h */,
+				9E5A3B291FD6FEBB007731AA /* GCDWebServerErrorResponse.m */,
+				9E5A3B251FD6FEBA007731AA /* GCDWebServerFileResponse.h */,
+				9E5A3B2B1FD6FEBC007731AA /* GCDWebServerFileResponse.m */,
+				9E5A3B2A1FD6FEBB007731AA /* GCDWebServerStreamedResponse.h */,
+				9E5A3B2C1FD6FEBC007731AA /* GCDWebServerStreamedResponse.m */,
+			);
+			name = GCDServer;
+			sourceTree = "<group>";
+		};
 		DA1166D71D14601C00438CEA /* Touches */ = {
 			isa = PBXGroup;
 			children = (
@@ -4549,6 +4647,7 @@
 				5DD67CC71E68B568009CD394 /* SDLLogMacros.h in Headers */,
 				5D61FCFF1A84238C00846EE7 /* SDLOnAppInterfaceUnregistered.h in Headers */,
 				5D61FDC51A84238C00846EE7 /* SDLTCPTransport.h in Headers */,
+				9E5A3B1C1FD6FEB0007731AA /* GCDWebServerMultiPartFormRequest.h in Headers */,
 				5D6CC8EF1C610E660027F60A /* SDLSecurityType.h in Headers */,
 				5D61FCF61A84238C00846EE7 /* SDLMediaClockFormat.h in Headers */,
 				5D61FD831A84238C00846EE7 /* SDLSetDisplayLayout.h in Headers */,
@@ -4569,6 +4668,7 @@
 				5D61FC391A84238C00846EE7 /* SDLAlertManeuver.h in Headers */,
 				5D61FC861A84238C00846EE7 /* SDLDeviceStatus.h in Headers */,
 				DA0C46AF1DCD41E30001F2A8 /* SDLMacros.h in Headers */,
+				9E5A3B2F1FD6FEBC007731AA /* GCDWebServerErrorResponse.h in Headers */,
 				5D61FCC71A84238C00846EE7 /* SDLIAPTransport.h in Headers */,
 				5D61FC6D1A84238C00846EE7 /* SDLCreateInteractionChoiceSetResponse.h in Headers */,
 				5D8204221BCEA89A00D0A41B /* SDLFileManager.h in Headers */,
@@ -4610,6 +4710,7 @@
 				DA9F7E991DCC052C00ACAE48 /* SDLLocationCoordinate.h in Headers */,
 				5D61FC351A84238C00846EE7 /* SDLAirbagStatus.h in Headers */,
 				5D61FC8A1A84238C00846EE7 /* SDLDiagnosticMessageResponse.h in Headers */,
+				9E5A3B2E1FD6FEBC007731AA /* GCDWebServerDataResponse.h in Headers */,
 				5D61FC2D1A84238C00846EE7 /* SDLAddCommand.h in Headers */,
 				5D61FD931A84238C00846EE7 /* SDLShowConstantTBTResponse.h in Headers */,
 				5DBF06391E64ABBE00A5CF03 /* SDLLogConfiguration.h in Headers */,
@@ -4620,11 +4721,13 @@
 				5D61FCE01A84238C00846EE7 /* SDLKeyboardEvent.h in Headers */,
 				5D3E48751D6F3B330000BFEF /* SDLAsynchronousOperation.h in Headers */,
 				DA9F7E631DCBFAC800ACAE48 /* SDLDateTime.h in Headers */,
+				9E5A3B031FD6FEA1007731AA /* GCDWebServerConnection.h in Headers */,
 				5D61FCEA1A84238C00846EE7 /* SDLLayoutMode.h in Headers */,
 				DA318C1F1DD0F06C00C035AC /* NSMutableDictionary+Store.h in Headers */,
 				5D61FD7F1A84238C00846EE7 /* SDLSetAppIcon.h in Headers */,
 				5D61FDD11A84238C00846EE7 /* SDLTouchCoord.h in Headers */,
 				5D61FC7E1A84238C00846EE7 /* SDLDeleteSubMenu.h in Headers */,
+				9E5A3B1B1FD6FEB0007731AA /* GCDWebServerDataRequest.h in Headers */,
 				1EE48E901F2F0EE700B98D08 /* SDLTemperatureUnit.h in Headers */,
 				5D61FC451A84238C00846EE7 /* SDLAudioPassThruCapabilities.h in Headers */,
 				5D61FDC71A84238C00846EE7 /* SDLTextAlignment.h in Headers */,
@@ -4693,6 +4796,7 @@
 				5D61FC2F1A84238C00846EE7 /* SDLAddCommandResponse.h in Headers */,
 				5D61FD631A84238C00846EE7 /* SDLResetGlobalProperties.h in Headers */,
 				5D61FDD71A84238C00846EE7 /* SDLTouchType.h in Headers */,
+				9E5A3B101FD6FEA1007731AA /* GCDWebServerPrivate.h in Headers */,
 				5D61FDD31A84238C00846EE7 /* SDLTouchEvent.h in Headers */,
 				5D61FD451A84238C00846EE7 /* SDLProtocolHeader.h in Headers */,
 				5D61FCFA1A84238C00846EE7 /* SDLMyKey.h in Headers */,
@@ -4708,6 +4812,7 @@
 				5D61FD481A84238C00846EE7 /* SDLProtocolMessage.h in Headers */,
 				5D1665CD1CF8CA8A00CC4CA1 /* SDLPermissionConstants.h in Headers */,
 				5D61FC8C1A84238C00846EE7 /* SDLDIDResult.h in Headers */,
+				9E5A3B091FD6FEA1007731AA /* GCDWebServer.h in Headers */,
 				5D61FD1F1A84238C00846EE7 /* SDLOnTouchEvent.h in Headers */,
 				5D61FCB31A84238C00846EE7 /* SDLGetDTCsResponse.h in Headers */,
 				5D61FC4D1A84238C00846EE7 /* SDLBitsPerSample.h in Headers */,
@@ -4721,6 +4826,7 @@
 				5D61FDE51A84238C00846EE7 /* SDLUnregisterAppInterfaceResponse.h in Headers */,
 				5D61FCF81A84238C00846EE7 /* SDLMenuParams.h in Headers */,
 				5D61FD651A84238C00846EE7 /* SDLResetGlobalPropertiesResponse.h in Headers */,
+				9E5A3B341FD6FEBC007731AA /* GCDWebServerStreamedResponse.h in Headers */,
 				DA9F7E671DCBFAD400ACAE48 /* SDLOasisAddress.h in Headers */,
 				5D61FD611A84238C00846EE7 /* SDLRequestType.h in Headers */,
 				DA9F7E8B1DCC04B000ACAE48 /* SDLSubscribeWayPointsResponse.h in Headers */,
@@ -4765,7 +4871,9 @@
 				5D61FC721A84238C00846EE7 /* SDLDeleteCommand.h in Headers */,
 				5D61FC821A84238C00846EE7 /* SDLDeviceInfo.h in Headers */,
 				5D61FCA91A84238C00846EE7 /* SDLFileType.h in Headers */,
+				9E5A3B201FD6FEB0007731AA /* GCDWebServerFileRequest.h in Headers */,
 				8877F5EE1F34A72200DC128A /* SDLSendHapticDataResponse.h in Headers */,
+				9E5A3B061FD6FEA1007731AA /* GCDWebServerHTTPStatusCodes.h in Headers */,
 				DA8966F21E56973700413EAB /* SDLStreamingMediaManagerConstants.h in Headers */,
 				5DD67CB81E661C4A009CD394 /* SDLLogTargetFile.h in Headers */,
 				5D61FD591A84238C00846EE7 /* SDLReadDID.h in Headers */,
@@ -4791,6 +4899,7 @@
 				5D61FCE41A84238C00846EE7 /* SDLKeyboardProperties.h in Headers */,
 				5D61FDED1A84238C00846EE7 /* SDLUnsubscribeVehicleDataResponse.h in Headers */,
 				5D4631041F2120A30092EFDC /* SDLControlFramePayloadType.h in Headers */,
+				9E5A3B1F1FD6FEB0007731AA /* GCDWebServerURLEncodedFormRequest.h in Headers */,
 				EED5CA061F4D1E2300F04000 /* SDLRTPH264Packetizer.h in Headers */,
 				5D61FCCF1A84238C00846EE7 /* SDLImageField.h in Headers */,
 				5D535DC51B72473800CF7760 /* SDLGlobals.h in Headers */,
@@ -4805,6 +4914,8 @@
 				1E5AD08C1F20BC320029B8AF /* SDLGetInteriorVehicleDataResponse.h in Headers */,
 				1E5AD0701F209C880029B8AF /* SDLModuleData.h in Headers */,
 				1E5AD0981F20C0FB0029B8AF /* SDLOnInteriorVehicleData.h in Headers */,
+				9E5A3B0A1FD6FEA1007731AA /* GCDWebServerFunctions.h in Headers */,
+				9E5A3B001FD6FEA1007731AA /* GCDWebServerResponse.h in Headers */,
 				1E5AD0641F207DD50029B8AF /* SDLTemperature.h in Headers */,
 				1E5AD0901F20BE820029B8AF /* SDLSetInteriorVehicleData.h in Headers */,
 				1E5AD0441F1F5A1F0029B8AF /* SDLRadioControlCapabilities.h in Headers */,
@@ -4821,9 +4932,11 @@
 				1E5AD0601F207AB10029B8AF /* SDLRadioState.h in Headers */,
 				1E5AD0801F20B73E0029B8AF /* SDLButtonPress.h in Headers */,
 				1E5AD05C1F2064A80029B8AF /* SDLRDSData.h in Headers */,
+				9E5A3B0D1FD6FEA1007731AA /* GCDWebServerRequest.h in Headers */,
 				1E5AD0341F1F3AA30029B8AF /* SDLRemoteControlCapabilities.h in Headers */,
 				5DA102A41D4122C700C15826 /* NSMutableDictionary+SafeRemove.h in Headers */,
 				5DBF062A1E64A92C00A5CF03 /* SDLLogTarget.h in Headers */,
+				9E5A3B3C1FD6FF8D007731AA /* SDLProtocolIndexServer.h in Headers */,
 				5DA49CE51F1EA83300E65FC5 /* SDLControlFramePayloadRPCStartService.h in Headers */,
 				5D61FE031A84238C00846EE7 /* SDLVehicleDataResult.h in Headers */,
 				5D61FD911A84238C00846EE7 /* SDLShowConstantTBT.h in Headers */,
@@ -4892,6 +5005,7 @@
 				5D61FD4E1A84238C00846EE7 /* SDLProtocolReceivedMessageRouter.h in Headers */,
 				97E26DEC1E807AD70074A3C7 /* SDLMutableDataQueue.h in Headers */,
 				5D61FDF71A84238C00846EE7 /* SDLV1ProtocolMessage.h in Headers */,
+				9E5A3B2D1FD6FEBC007731AA /* GCDWebServerFileResponse.h in Headers */,
 				5D61FDFB1A84238C00846EE7 /* SDLV2ProtocolMessage.h in Headers */,
 				5DBF06311E64A9C600A5CF03 /* SDLLogModel.h in Headers */,
 				5D7F87EB1CE3C1A1002DD7C4 /* SDLDeleteFileOperation.h in Headers */,
@@ -5001,7 +5115,6 @@
 				TargetAttributes = {
 					5D4019AE1A76EC350006B0C2 = {
 						CreatedOnToolsVersion = 6.1.1;
-						DevelopmentTeam = NCVC2MHU7M;
 						SystemCapabilities = {
 							com.apple.BackgroundModes = {
 								enabled = 1;
@@ -5142,6 +5255,7 @@
 				DAA41D561DF66B2000BC7337 /* SDLH264VideoEncoder.m in Sources */,
 				5D61FC9D1A84238C00846EE7 /* SDLEmergencyEventType.m in Sources */,
 				5D61FCAC1A84238C00846EE7 /* SDLFuelCutoffStatus.m in Sources */,
+				9E5A3B381FD6FEBC007731AA /* GCDWebServerStreamedResponse.m in Sources */,
 				5D61FC871A84238C00846EE7 /* SDLDeviceStatus.m in Sources */,
 				5D61FD561A84238C00846EE7 /* SDLPutFile.m in Sources */,
 				5D61FCE71A84238C00846EE7 /* SDLKeypressMode.m in Sources */,
@@ -5183,6 +5297,7 @@
 				5D61FDE61A84238C00846EE7 /* SDLUnregisterAppInterfaceResponse.m in Sources */,
 				5D61FC481A84238C00846EE7 /* SDLAudioStreamingState.m in Sources */,
 				5D61FCC81A84238C00846EE7 /* SDLIAPTransport.m in Sources */,
+				9E5A3B1A1FD6FEB0007731AA /* GCDWebServerURLEncodedFormRequest.m in Sources */,
 				5D61FE101A84238C00846EE7 /* SDLVrHelpItem.m in Sources */,
 				1E5AD0691F2080B50029B8AF /* SDLRadioControlData.m in Sources */,
 				5D61FCC01A84238C00846EE7 /* SDLHexUtility.m in Sources */,
@@ -5208,6 +5323,7 @@
 				5D61FE141A84238C00846EE7 /* SDLWiperStatus.m in Sources */,
 				5D61FC8B1A84238C00846EE7 /* SDLDiagnosticMessageResponse.m in Sources */,
 				5DBF063A1E64ABBE00A5CF03 /* SDLLogConfiguration.m in Sources */,
+				9E5A3B051FD6FEA1007731AA /* GCDWebServer.m in Sources */,
 				5D61FD2E1A84238C00846EE7 /* SDLPermissionItem.m in Sources */,
 				5D61FD041A84238C00846EE7 /* SDLOnButtonEvent.m in Sources */,
 				5D61FD201A84238C00846EE7 /* SDLOnTouchEvent.m in Sources */,
@@ -5232,11 +5348,13 @@
 				5D61FD681A84238C00846EE7 /* SDLResult.m in Sources */,
 				5D61FDE21A84238C00846EE7 /* SDLTurn.m in Sources */,
 				5D61FC5A1A84238C00846EE7 /* SDLCarModeStatus.m in Sources */,
+				9E5A3B3E1FD6FF8D007731AA /* SDLProtocolIndexServer.m in Sources */,
 				5D82041B1BCD80BA00D0A41B /* SDLLockScreenConfiguration.m in Sources */,
 				5D3E48CC1D7722FE0000BFEF /* NSBundle+SDLBundle.m in Sources */,
 				5D61FCBC1A84238C00846EE7 /* SDLGPSData.m in Sources */,
 				5D61FD341A84238C00846EE7 /* SDLPowerModeQualificationStatus.m in Sources */,
 				5D61FC891A84238C00846EE7 /* SDLDiagnosticMessage.m in Sources */,
+				9E5A3B361FD6FEBC007731AA /* GCDWebServerFileResponse.m in Sources */,
 				5D61FD6E1A84238C00846EE7 /* SDLRPCNotification.m in Sources */,
 				5D8B17501AC9D266006A6E1C /* SDLDialNumber.m in Sources */,
 				5DBF06281E64A91D00A5CF03 /* SDLLogFileModule.m in Sources */,
@@ -5285,6 +5403,7 @@
 				5DCF76FA1ACDD7CD00BB647B /* SDLSendLocationResponse.m in Sources */,
 				5D9FDA8F1F2A7D3400A495C8 /* bson_array.c in Sources */,
 				5D61FD661A84238C00846EE7 /* SDLResetGlobalPropertiesResponse.m in Sources */,
+				9E5A3B081FD6FEA1007731AA /* GCDWebServerConnection.m in Sources */,
 				5D61FCFE1A84238C00846EE7 /* SDLObjectWithPriority.m in Sources */,
 				5DBF06241E64A83F00A5CF03 /* SDLLogManager.m in Sources */,
 				5D61FC401A84238C00846EE7 /* SDLAmbientLightStatus.m in Sources */,
@@ -5334,12 +5453,16 @@
 				5D61FDF61A84238C00846EE7 /* SDLV1ProtocolHeader.m in Sources */,
 				5D61FDAA1A84238C00846EE7 /* SDLSpeechCapabilities.m in Sources */,
 				1E5AD0951F20BEAD0029B8AF /* SDLSetInteriorVehicleDataResponse.m in Sources */,
+				9E5A3B311FD6FEBC007731AA /* GCDWebServerDataResponse.m in Sources */,
 				5D61FDB41A84238C00846EE7 /* SDLSubscribeVehicleDataResponse.m in Sources */,
 				5D61FD121A84238C00846EE7 /* SDLOnKeyboardInput.m in Sources */,
 				DA9F7E9A1DCC052C00ACAE48 /* SDLLocationCoordinate.m in Sources */,
 				5D61FCCA1A84238C00846EE7 /* SDLIgnitionStableStatus.m in Sources */,
 				5D61FCFB1A84238C00846EE7 /* SDLMyKey.m in Sources */,
 				5D61FCAA1A84238C00846EE7 /* SDLFileType.m in Sources */,
+				9E5A3B221FD6FEB0007731AA /* GCDWebServerMultiPartFormRequest.m in Sources */,
+				9E5A3B241FD6FEB0007731AA /* GCDWebServerFileRequest.m in Sources */,
+				9E5A3B0F1FD6FEA1007731AA /* GCDWebServerRequest.m in Sources */,
 				1E5AD0651F207DD50029B8AF /* SDLTemperature.m in Sources */,
 				DA9F7E901DCC04C000ACAE48 /* SDLUnsubscribeWayPointsResponse.m in Sources */,
 				5DE372A21ACB2ED300849FAA /* SDLHMICapabilities.m in Sources */,
@@ -5381,6 +5504,7 @@
 				EED5CA021F4D18EC00F04000 /* SDLRAWH264Packetizer.m in Sources */,
 				5D61FC851A84238C00846EE7 /* SDLDeviceLevelStatus.m in Sources */,
 				5D9FDA981F2A7D3F00A495C8 /* emhashmap.c in Sources */,
+				9E5A3B021FD6FEA1007731AA /* GCDWebServerResponse.m in Sources */,
 				5D61FD1E1A84238C00846EE7 /* SDLOnTBTClientState.m in Sources */,
 				5DD67CBD1E661C84009CD394 /* SDLLogTargetOSLog.m in Sources */,
 				DA9F7E641DCBFAC800ACAE48 /* SDLDateTime.m in Sources */,
@@ -5388,6 +5512,7 @@
 				5D61FCB21A84238C00846EE7 /* SDLGetDTCs.m in Sources */,
 				5D61FD441A84238C00846EE7 /* SDLProtocol.m in Sources */,
 				5D61FC341A84238C00846EE7 /* SDLAddSubMenuResponse.m in Sources */,
+				9E5A3B1E1FD6FEB0007731AA /* GCDWebServerDataRequest.m in Sources */,
 				5DA240011F325621009C0313 /* SDLStreamingMediaConfiguration.m in Sources */,
 				5D6F7A2F1BC5650B0070BF37 /* SDLLifecycleConfiguration.m in Sources */,
 				5D61FD141A84238C00846EE7 /* SDLOnLanguageChange.m in Sources */,
@@ -5405,6 +5530,7 @@
 				5D61FE021A84238C00846EE7 /* SDLVehicleDataNotificationStatus.m in Sources */,
 				5D61FDD81A84238C00846EE7 /* SDLTouchType.m in Sources */,
 				DA4F47961E771AA100FC809E /* SDLEnum.m in Sources */,
+				9E5A3B0C1FD6FEA1007731AA /* GCDWebServerFunctions.m in Sources */,
 				5D61FDD61A84238C00846EE7 /* SDLTouchEventCapabilities.m in Sources */,
 				5DA49CE61F1EA83300E65FC5 /* SDLControlFramePayloadRPCStartService.m in Sources */,
 				5DA102A51D4122C700C15826 /* NSMutableDictionary+SafeRemove.m in Sources */,
@@ -5455,6 +5581,7 @@
 				5D61FDC61A84238C00846EE7 /* SDLTCPTransport.m in Sources */,
 				5D61FE0E1A84238C00846EE7 /* SDLVrCapabilities.m in Sources */,
 				5D61FDC21A84238C00846EE7 /* SDLSystemRequestResponse.m in Sources */,
+				9E5A3B331FD6FEBC007731AA /* GCDWebServerErrorResponse.m in Sources */,
 				5D9FDA911F2A7D3400A495C8 /* bson_object.c in Sources */,
 				5D61FD001A84238C00846EE7 /* SDLOnAppInterfaceUnregistered.m in Sources */,
 				DA8966EC1E56939F00413EAB /* SDLStreamingMediaLifecycleManager.m in Sources */,
@@ -6012,7 +6139,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = NCVC2MHU7M;
+				DEVELOPMENT_TEAM = FSY7S75V8F;
 				INFOPLIST_FILE = "$(SRCROOT)/SmartDeviceLink_Example/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -6027,7 +6154,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = NCVC2MHU7M;
+				DEVELOPMENT_TEAM = FSY7S75V8F;
 				INFOPLIST_FILE = "$(SRCROOT)/SmartDeviceLink_Example/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";

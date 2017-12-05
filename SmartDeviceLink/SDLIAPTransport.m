@@ -15,6 +15,9 @@
 #import "SDLStreamDelegate.h"
 #import "SDLTimer.h"
 #import <CommonCrypto/CommonDigest.h>
+#import "GCDWebServer.h"
+#import "GCDWebServerDataResponse.h"
+#import "SDLProtocolIndexServer.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -35,7 +38,8 @@ int const ProtocolIndexTimeoutSeconds = 20;
 @property (assign, nonatomic) BOOL sessionSetupInProgress;
 @property (nonatomic, assign) UIBackgroundTaskIdentifier backgroundTaskId;
 @property (nullable, strong, nonatomic) SDLTimer *protocolIndexTimer;
-
+@property (nullable, strong, nonatomic) SDLProtocolIndexServer *server;
+@property (assign, nonatomic) double retryDelay;
 @end
 
 
@@ -50,6 +54,7 @@ int const ProtocolIndexTimeoutSeconds = 20;
         _controlSession = nil;
         _retryCounter = 0;
         _protocolIndexTimer = nil;
+        _retryDelay = 0;
         
         // Get notifications if an accessory connects in future
         [self sdl_startEventListening];
@@ -141,16 +146,19 @@ int const ProtocolIndexTimeoutSeconds = 20;
 - (void)sdl_accessoryConnected:(NSNotification *)notification {
     //EAAccessory *accessory = notification.userInfo[EAAccessoryKey];
     
-    double retryDelay = self.retryDelay;
-    SDLLogD(@"Accessory Connected (%@), Opening in %0.03fs", notification.userInfo[EAAccessoryKey], retryDelay);
+    [self retryDelay:^(double retryDelay) {
+        self.retryDelay = retryDelay;
+        SDLLogD(@"Accessory Connected (%@), Opening in %0.03fs", notification.userInfo[EAAccessoryKey], self.retryDelay);
+        
+        if ([[UIApplication sharedApplication] applicationState] != UIApplicationStateActive) {
+            SDLLogD(@"Accessory connected while app is in background. Starting background task.");
+            [self sdl_backgroundTaskStart];
+        }
+        
+        self.retryCounter = 0;
+        [self performSelector:@selector(sdl_connect:) withObject:nil afterDelay:self.retryDelay];
+    } finalAttempt:false];
     
-    if ([[UIApplication sharedApplication] applicationState] != UIApplicationStateActive) {
-        SDLLogD(@"Accessory connected while app is in background. Starting background task.");
-        [self sdl_backgroundTaskStart];
-    }
-    
-    self.retryCounter = 0;
-    [self performSelector:@selector(sdl_connect:) withObject:nil afterDelay:retryDelay];
 }
 
 /**
@@ -602,7 +610,7 @@ int const ProtocolIndexTimeoutSeconds = 20;
     };
 }
 
-- (double)retryDelay {
+- (void)retryDelay:(void (^)(double retryDelay))completion finalAttempt:(BOOL)isFinalAttempt {
     const double MinRetrySeconds = 1.5;
     const double MaxRetrySeconds = 9.5;
     double RetryRangeSeconds = MaxRetrySeconds - MinRetrySeconds;
@@ -610,7 +618,32 @@ int const ProtocolIndexTimeoutSeconds = 20;
     static double appDelaySeconds = 0;
     
     // HAX: This pull the app name and hashes it in an attempt to provide a more even distribution of retry delays. The evidence that this does so is anecdotal. A more ideal solution would be to use a list of known, installed SDL apps on the phone to try and deterministically generate an even delay.
-    if (appDelaySeconds == 0) {
+    
+    NSURL *localServerURL = [NSURL URLWithString:@"localhost:8888"];
+    NSData *delayData = [NSData dataWithContentsOfURL:localServerURL];
+    
+    if (!delayData) {
+        if (!isFinalAttempt) {
+            // Delay execution of my block for 10 seconds.
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.3 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+                [self retryDelay:completion finalAttempt:true];
+            });
+        } else if (!self.server) {
+            appDelaySeconds = 0.5;
+            self.server = [[SDLProtocolIndexServer alloc] init];
+            completion(appDelaySeconds);
+        }
+    } else {
+        NSError *error = nil;
+        NSDictionary *response = [NSJSONSerialization JSONObjectWithData:delayData options:NSJSONReadingMutableContainers error:&error];
+        NSNumber *delay = [response objectForKey:@"delay"];
+        appDelaySeconds = delay.doubleValue;
+        completion(appDelaySeconds);
+    }
+    
+    
+    
+    /*if (appDelaySeconds == 0) {
         NSString *appName = [[NSProcessInfo processInfo] processName];
         if (appName == nil) {
             appName = @"noname";
@@ -637,7 +670,7 @@ int const ProtocolIndexTimeoutSeconds = 20;
         appDelaySeconds = ((RetryRangeSeconds * hashBasedValueInRange0to1) + MinRetrySeconds);
     }
     
-    return appDelaySeconds;
+    return appDelaySeconds;*/
 }
 
 

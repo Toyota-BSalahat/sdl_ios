@@ -15,6 +15,7 @@
 @interface SDLProtocolIndexServer ()
     @property (nullable, strong, nonatomic) GCDWebServer *protocolIndexServer;
     @property (assign, nonatomic) int delayCounter;
+    @property (nullable, strong, nonatomic) NSTimer *timeoutResetTimer;
 @end
 
 @implementation SDLProtocolIndexServer
@@ -25,6 +26,11 @@
         _protocolIndexServer = [[GCDWebServer alloc] init];
         
         __weak typeof(self) weakSelf = self;
+
+        _timeoutResetTimer = [NSTimer scheduledTimerWithTimeInterval:10.0 repeats:true block:^(NSTimer * _Nonnull timer) {
+            weakSelf.delayCounter = 0;
+        }];
+        
         [_protocolIndexServer addDefaultHandlerForMethod:@"GET"
                                   requestClass:[GCDWebServerRequest class]
                                   processBlock:^GCDWebServerResponse *(GCDWebServerRequest* request) {

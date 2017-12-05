@@ -619,7 +619,7 @@ int const ProtocolIndexTimeoutSeconds = 20;
     
     // HAX: This pull the app name and hashes it in an attempt to provide a more even distribution of retry delays. The evidence that this does so is anecdotal. A more ideal solution would be to use a list of known, installed SDL apps on the phone to try and deterministically generate an even delay.
     
-    NSURL *localServerURL = [NSURL URLWithString:@"localhost:8888"];
+    NSURL *localServerURL = [NSURL URLWithString:@"http://localhost:8888"];
     NSData *delayData = [NSData dataWithContentsOfURL:localServerURL];
     
     if (!delayData) {

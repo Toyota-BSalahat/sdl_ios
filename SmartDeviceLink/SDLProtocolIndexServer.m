@@ -46,6 +46,11 @@
         NSError *error = nil;
         [_protocolIndexServer startWithOptions:options error:&error];
         
+        if (error) {
+            SDLLogD(@"Server binding failed. Probably an instance running already.");
+            return nil;
+        }
+        
         SDLLogD(@"TCP Transport initialization");
     }
     

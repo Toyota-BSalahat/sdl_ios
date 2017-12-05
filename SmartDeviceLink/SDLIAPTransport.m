@@ -268,10 +268,10 @@ int const ProtocolIndexTimeoutSeconds = 20;
         return connecting;
     }
 
-    if ([accessory supportsProtocol:MultiSessionProtocolString] && SDL_SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"9")) {
+    /*if ([accessory supportsProtocol:MultiSessionProtocolString] && SDL_SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"9")) {
         [self sdl_createIAPDataSessionWithAccessory:accessory forProtocol:MultiSessionProtocolString];
         connecting = YES;
-    } else if ([accessory supportsProtocol:ControlProtocolString]) {
+    } else*/ if ([accessory supportsProtocol:ControlProtocolString]) {
         [self sdl_createIAPControlSessionWithAccessory:accessory];
         connecting = YES;
     } else if ([accessory supportsProtocol:LegacyProtocolString]) {
@@ -289,9 +289,9 @@ int const ProtocolIndexTimeoutSeconds = 20;
 + (nullable NSString *)sdl_supportsRequiredProtocolStrings {
     NSArray<NSString *> *protocolStrings = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"UISupportedExternalAccessoryProtocols"];
 
-    if (![protocolStrings containsObject:MultiSessionProtocolString]) {
+    /*if (![protocolStrings containsObject:MultiSessionProtocolString]) {
         return MultiSessionProtocolString;
-    }
+    }*/
 
     if (![protocolStrings containsObject:LegacyProtocolString]) {
         return LegacyProtocolString;
@@ -333,9 +333,9 @@ int const ProtocolIndexTimeoutSeconds = 20;
         }
         
         // Determine if we can start a multi-app session or a legacy (single-app) session
-        if ((sdlAccessory = [EAAccessoryManager findAccessoryForProtocol:MultiSessionProtocolString]) && SDL_SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"9")) {
+        /*if ((sdlAccessory = [EAAccessoryManager findAccessoryForProtocol:MultiSessionProtocolString]) && SDL_SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"9")) {
             [self sdl_createIAPDataSessionWithAccessory:sdlAccessory forProtocol:MultiSessionProtocolString];
-        } else if ((sdlAccessory = [EAAccessoryManager findAccessoryForProtocol:ControlProtocolString])) {
+        } else */if ((sdlAccessory = [EAAccessoryManager findAccessoryForProtocol:ControlProtocolString])) {
             [self sdl_createIAPControlSessionWithAccessory:sdlAccessory];
         } else if ((sdlAccessory = [EAAccessoryManager findAccessoryForProtocol:LegacyProtocolString])) {
             [self sdl_createIAPDataSessionWithAccessory:sdlAccessory forProtocol:LegacyProtocolString];
@@ -629,9 +629,17 @@ int const ProtocolIndexTimeoutSeconds = 20;
                 [self retryDelay:completion finalAttempt:true];
             });
         } else if (!self.server) {
-            appDelaySeconds = 0.5;
+            
             self.server = [[SDLProtocolIndexServer alloc] init];
-            completion(appDelaySeconds);
+            
+            if (self.server) { //This app has become the source of truth
+                appDelaySeconds = 0.5;
+                completion(appDelaySeconds);
+            } else { //This app cannot become the source of truth. It must contact the source of truth for a delay
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.3 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+                    [self retryDelay:completion finalAttempt:true];
+                });
+            }
         }
     } else {
         NSError *error = nil;

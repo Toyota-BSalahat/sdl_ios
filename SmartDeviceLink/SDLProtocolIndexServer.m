@@ -28,7 +28,7 @@
         __weak typeof(self) weakSelf = self;
 
         _timeoutResetTimer = [NSTimer scheduledTimerWithTimeInterval:10.0 repeats:true block:^(NSTimer * _Nonnull timer) {
-            weakSelf.delayCounter = 0;
+            weakSelf.delayCounter = 2;
         }];
         
         [_protocolIndexServer addDefaultHandlerForMethod:@"GET"

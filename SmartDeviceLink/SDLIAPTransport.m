@@ -40,6 +40,7 @@ int const ProtocolIndexTimeoutSeconds = 20;
 @property (nullable, strong, nonatomic) SDLTimer *protocolIndexTimer;
 @property (nullable, strong, nonatomic) SDLProtocolIndexServer *server;
 @property (assign, nonatomic) double retryDelay;
+@property (assign) BOOL listeningForEvents;
 @end
 
 
@@ -125,6 +126,8 @@ int const ProtocolIndexTimeoutSeconds = 20;
                                                object:nil];
     
     [[EAAccessoryManager sharedAccessoryManager] registerForLocalNotifications];
+    self.listeningForEvents = YES;
+
 }
 
 /**
@@ -132,8 +135,38 @@ int const ProtocolIndexTimeoutSeconds = 20;
  */
 - (void)sdl_stopEventListening {
     SDLLogV(@"SDLIAPTransport stopped listening for events");
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    if (self.listeningForEvents) {
+        [[NSNotificationCenter defaultCenter] removeObserver:self];
+        self.listeningForEvents = NO;
+    }
 }
+
+
+- (BOOL)accessoryIsOurs:(EAAccessory *)accessory{
+    SDLIAPSession *activeSession = nil;
+    if (self.controlSession){
+        activeSession = self.controlSession;
+    }
+    else{
+        activeSession = self.session;
+    }
+    
+    if (activeSession){
+        if (accessory.connectionID == activeSession.accessory.connectionID ||
+            [accessory.serialNumber isEqualToString:activeSession.accessory.serialNumber]){
+            return YES;
+        }
+    }
+    else{
+        if ([accessory supportsProtocol:@"com.smartdevicelink.prot0"]){
+            return YES;
+        }
+    }
+    
+    return NO;
+}
+
+
 
 
 #pragma mark EAAccessory Notifications
@@ -168,16 +201,17 @@ int const ProtocolIndexTimeoutSeconds = 20;
  */
 - (void)sdl_accessoryDisconnected:(NSNotification *)notification {
     EAAccessory *accessory = [notification.userInfo objectForKey:EAAccessoryKey];
-    if (accessory.connectionID != self.session.accessory.connectionID) {
-        SDLLogD(@"Accessory disconnected event (%@)", accessory);
-    }
-    if ([accessory.serialNumber isEqualToString:self.session.accessory.serialNumber]) {
+    
+    if ([self accessoryIsOurs:accessory]) {
         SDLLogD(@"Connected accessory disconnected event");
+        [self disconnect];
         self.retryCounter = 0;
         self.sessionSetupInProgress = NO;
-        [self disconnect];
         [self.delegate onTransportDisconnected];
+    } else {
+        SDLLogW(@"Accessory is not ours, ignoring!!!");
     }
+    
 }
 
 #pragma mark App Lifecycle Notifications
@@ -203,12 +237,24 @@ int const ProtocolIndexTimeoutSeconds = 20;
  */
 - (void)sdl_applicationDidEnterBackground:(NSNotification *)notification {
     SDLLogV(@"App backgrounded, starting background task");
-    [self sdl_backgroundTaskStart];
+    if (self.sessionSetupInProgress){
+        [self sdl_backgroundTaskStart];
+    }
 }
 
 #pragma mark - Stream Lifecycle
 
 - (void)connect {
+    if (!self.listeningForEvents) {
+        [self sdl_startEventListening];
+    }
+    
+    UIApplicationState state = [UIApplication sharedApplication].applicationState;
+    if (state != UIApplicationStateActive){
+        SDLLogW(@"App inactive on connect, starting background task");
+        [self sdl_backgroundTaskStart];
+    }
+    
     [self sdl_connect:nil];
 }
 
@@ -218,7 +264,13 @@ int const ProtocolIndexTimeoutSeconds = 20;
  *  @param accessory The accessory to attempt connection with or nil to scan for accessories.
  */
 - (void)sdl_connect:(nullable EAAccessory *)accessory {
-    if (!self.session && !self.sessionSetupInProgress) {
+    BOOL isDataSessionEstablished = (self.session && !self.session.stopped);
+    
+    if (!isDataSessionEstablished && !self.sessionSetupInProgress) {
+        // reset counter when this is triggered from -sdl_accessoryConnected:
+        if (accessory) {
+            self.retryCounter = 0;
+        }
         // We don't have a session are not attempting to set one up, attempt to connect
         SDLLogV(@"Session not setup, starting setup");
         self.sessionSetupInProgress = YES;
@@ -387,7 +439,9 @@ int const ProtocolIndexTimeoutSeconds = 20;
             SDLLogW(@"Control session failed to setup (%@)", accessory);
             self.controlSession.streamDelegate = nil;
             self.controlSession = nil;
-            [self sdl_retryEstablishSession];
+            [self retryDelay:^(double retryDelay) {
+                [self sdl_retryEstablishSessionWithDelay:retryDelay];
+            } finalAttempt:false];
         }
     } else {
         SDLLogW(@"Failed to setup control session (%@)", accessory);
@@ -420,6 +474,11 @@ int const ProtocolIndexTimeoutSeconds = 20;
 }
 
 - (void)sdl_retryEstablishSession {
+    [self sdl_retryEstablishSessionWithDelay:0];
+}
+
+
+- (void)sdl_retryEstablishSessionWithDelay:(double)delay {
     // Current strategy disallows automatic retries.
     self.sessionSetupInProgress = NO;
     if (self.session != nil) {
@@ -428,9 +487,14 @@ int const ProtocolIndexTimeoutSeconds = 20;
         self.session = nil;
     }
     
-    // Search connected accessories
-    self.retryCounter = 0;
-    [self sdl_connect:nil];
+    // No accessory to use this time, search connected accessories
+    if (delay > 0) {
+        [self performSelector:@selector(sdl_connect:) withObject:nil afterDelay:delay];
+    } else {
+        self.retryCounter = 0;
+        [self sdl_connect:nil];
+    }
+
 }
 
 // This gets called after both I/O streams of the session have opened.
@@ -492,7 +556,9 @@ int const ProtocolIndexTimeoutSeconds = 20;
             [strongSelf.controlSession stop];
             strongSelf.controlSession.streamDelegate = nil;
             strongSelf.controlSession = nil;
-            [strongSelf sdl_retryEstablishSession];
+            [strongSelf retryDelay:^(double retryDelay) {
+                [strongSelf sdl_retryEstablishSessionWithDelay:retryDelay];
+            } finalAttempt:false];
         }
     };
 }
@@ -545,7 +611,9 @@ int const ProtocolIndexTimeoutSeconds = 20;
         [strongSelf.controlSession stop];
         strongSelf.controlSession.streamDelegate = nil;
         strongSelf.controlSession = nil;
-        [strongSelf sdl_retryEstablishSession];
+        [strongSelf retryDelay:^(double retryDelay) {
+            [strongSelf sdl_retryEstablishSessionWithDelay:retryDelay];
+        } finalAttempt:false];
     };
 }
 
@@ -633,7 +701,7 @@ int const ProtocolIndexTimeoutSeconds = 20;
             self.server = [[SDLProtocolIndexServer alloc] init];
             
             if (self.server) { //This app has become the source of truth
-                appDelaySeconds = 0.5;
+                appDelaySeconds = 1.5;
                 completion(appDelaySeconds);
             } else { //This app cannot become the source of truth. It must contact the source of truth for a delay
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.3 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{

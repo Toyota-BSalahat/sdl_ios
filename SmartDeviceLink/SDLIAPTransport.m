@@ -755,8 +755,16 @@ int const ProtocolIndexTimeoutSeconds = 20;
 - (void)sdl_destructObjects {
     if (!_alreadyDestructed) {
         _alreadyDestructed = YES;
+        [self sdl_backgroundTaskEnd];
+        [self sdl_stopEventListening];
+        [self disconnect];
+        [self.protocolIndexTimer cancel];
+        self.controlSession.streamDelegate = nil;
         self.controlSession = nil;
-        self.session = nil;
+        if (self.session.isStopped){
+            self.session.streamDelegate = nil;
+            self.session = nil;
+        }
         self.delegate = nil;
         self.sessionSetupInProgress = NO;
     }

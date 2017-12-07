@@ -10,4 +10,7 @@
 
 @interface SDLProtocolIndexServer : NSObject
 
++ (SDLProtocolIndexServer *)sharedInstance;
+
 @end
+

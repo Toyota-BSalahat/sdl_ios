@@ -27,7 +27,7 @@ NSString *const IndexedProtocolStringPrefix = @"com.smartdevicelink.prot";
 NSString *const MultiSessionProtocolString = @"com.smartdevicelink.multisession";
 NSString *const BackgroundTaskName = @"com.sdl.transport.iap.backgroundTask";
 
-int const CreateSessionRetries = 1;
+int const CreateSessionRetries = 5;
 int const ProtocolIndexTimeoutSeconds = 20;
 
 @interface SDLIAPTransport () {
@@ -38,7 +38,6 @@ int const ProtocolIndexTimeoutSeconds = 20;
 @property (assign, nonatomic) BOOL sessionSetupInProgress;
 @property (nonatomic, assign) UIBackgroundTaskIdentifier backgroundTaskId;
 @property (nullable, strong, nonatomic) SDLTimer *protocolIndexTimer;
-@property (nullable, strong, nonatomic) SDLProtocolIndexServer *server;
 @property (assign, nonatomic) double retryDelay;
 @property (assign) BOOL listeningForEvents;
 @end
@@ -127,7 +126,7 @@ int const ProtocolIndexTimeoutSeconds = 20;
     
     [[EAAccessoryManager sharedAccessoryManager] registerForLocalNotifications];
     self.listeningForEvents = YES;
-
+    
 }
 
 /**
@@ -237,6 +236,7 @@ int const ProtocolIndexTimeoutSeconds = 20;
  */
 - (void)sdl_applicationDidEnterBackground:(NSNotification *)notification {
     SDLLogV(@"App backgrounded, starting background task");
+    self.retryCounter = 0;
     if (self.sessionSetupInProgress){
         [self sdl_backgroundTaskStart];
     }
@@ -255,7 +255,10 @@ int const ProtocolIndexTimeoutSeconds = 20;
         [self sdl_backgroundTaskStart];
     }
     
-    [self sdl_connect:nil];
+    [self retryDelay:^(double retryDelay) {
+        [self performSelector:@selector(sdl_connect:) withObject:nil afterDelay:self.retryDelay];
+    } finalAttempt:false];
+    
 }
 
 /**
@@ -319,43 +322,43 @@ int const ProtocolIndexTimeoutSeconds = 20;
         NSAssert(NO, @"Some SDL protocol strings are not supported, check the README for all strings that must be included in your info.plist file. Missing string: %@", failedString);
         return connecting;
     }
-
+    
     /*if ([accessory supportsProtocol:MultiSessionProtocolString] && SDL_SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"9")) {
-        [self sdl_createIAPDataSessionWithAccessory:accessory forProtocol:MultiSessionProtocolString];
-        connecting = YES;
-    } else*/ if ([accessory supportsProtocol:ControlProtocolString]) {
-        [self sdl_createIAPControlSessionWithAccessory:accessory];
-        connecting = YES;
-    } else if ([accessory supportsProtocol:LegacyProtocolString]) {
-        [self sdl_createIAPDataSessionWithAccessory:accessory forProtocol:LegacyProtocolString];
-        connecting = YES;
-    }
+     [self sdl_createIAPDataSessionWithAccessory:accessory forProtocol:MultiSessionProtocolString];
+     connecting = YES;
+     } else*/ if ([accessory supportsProtocol:ControlProtocolString]) {
+         [self sdl_createIAPControlSessionWithAccessory:accessory];
+         connecting = YES;
+     } else if ([accessory supportsProtocol:LegacyProtocolString]) {
+         [self sdl_createIAPDataSessionWithAccessory:accessory forProtocol:LegacyProtocolString];
+         connecting = YES;
+     }
     return connecting;
 }
 
 /**
  Check all required protocol strings in the info.plist dictionary.
-
+ 
  @return A missing protocol string or nil if all strings are supported.
  */
 + (nullable NSString *)sdl_supportsRequiredProtocolStrings {
     NSArray<NSString *> *protocolStrings = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"UISupportedExternalAccessoryProtocols"];
-
+    
     /*if (![protocolStrings containsObject:MultiSessionProtocolString]) {
-        return MultiSessionProtocolString;
-    }*/
-
+     return MultiSessionProtocolString;
+     }*/
+    
     if (![protocolStrings containsObject:LegacyProtocolString]) {
         return LegacyProtocolString;
     }
-
+    
     for (int i = 0; i < 30; i++) {
         NSString *indexedProtocolString = [NSString stringWithFormat:@"%@%i", IndexedProtocolStringPrefix, i];
         if (![protocolStrings containsObject:indexedProtocolString]) {
             return indexedProtocolString;
         }
     }
-
+    
     return nil;
 }
 
@@ -376,7 +379,7 @@ int const ProtocolIndexTimeoutSeconds = 20;
             // Connection underway, exit
             return;
         }
-
+        
         if ([self.class sdl_supportsRequiredProtocolStrings] != nil) {
             NSString *failedString = [self.class sdl_supportsRequiredProtocolStrings];
             SDLLogE(@"A required External Accessory protocol string is missing from the info.plist: %@", failedString);
@@ -386,16 +389,16 @@ int const ProtocolIndexTimeoutSeconds = 20;
         
         // Determine if we can start a multi-app session or a legacy (single-app) session
         /*if ((sdlAccessory = [EAAccessoryManager findAccessoryForProtocol:MultiSessionProtocolString]) && SDL_SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"9")) {
-            [self sdl_createIAPDataSessionWithAccessory:sdlAccessory forProtocol:MultiSessionProtocolString];
-        } else */if ((sdlAccessory = [EAAccessoryManager findAccessoryForProtocol:ControlProtocolString])) {
-            [self sdl_createIAPControlSessionWithAccessory:sdlAccessory];
-        } else if ((sdlAccessory = [EAAccessoryManager findAccessoryForProtocol:LegacyProtocolString])) {
-            [self sdl_createIAPDataSessionWithAccessory:sdlAccessory forProtocol:LegacyProtocolString];
-        } else {
-            // No compatible accessory
-            SDLLogV(@"No accessory supporting SDL was found, dismissing setup");
-            self.sessionSetupInProgress = NO;
-        }
+         [self sdl_createIAPDataSessionWithAccessory:sdlAccessory forProtocol:MultiSessionProtocolString];
+         } else */if ((sdlAccessory = [EAAccessoryManager findAccessoryForProtocol:ControlProtocolString])) {
+             [self sdl_createIAPControlSessionWithAccessory:sdlAccessory];
+         } else if ((sdlAccessory = [EAAccessoryManager findAccessoryForProtocol:LegacyProtocolString])) {
+             [self sdl_createIAPDataSessionWithAccessory:sdlAccessory forProtocol:LegacyProtocolString];
+         } else {
+             // No compatible accessory
+             SDLLogV(@"No accessory supporting SDL was found, dismissing setup");
+             self.sessionSetupInProgress = NO;
+         }
         
     } else {
         // We are beyond the number of retries allowed
@@ -494,7 +497,7 @@ int const ProtocolIndexTimeoutSeconds = 20;
         self.retryCounter = 0;
         [self sdl_connect:nil];
     }
-
+    
 }
 
 // This gets called after both I/O streams of the session have opened.
@@ -651,7 +654,7 @@ int const ProtocolIndexTimeoutSeconds = 20;
             NSInteger bytesRead = [istream read:buf maxLength:[[SDLGlobals sharedGlobals] mtuSizeForServiceType:SDLServiceTypeRPC]];
             NSData *dataIn = [NSData dataWithBytes:buf length:bytesRead];
             SDLLogBytes(dataIn, SDLLogBytesDirectionReceive);
-
+            
             if (bytesRead > 0) {
                 [strongSelf.delegate onDataReceived:dataIn];
             } else {
@@ -696,12 +699,11 @@ int const ProtocolIndexTimeoutSeconds = 20;
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.3 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
                 [self retryDelay:completion finalAttempt:true];
             });
-        } else if (!self.server) {
+        } else {
             
-            self.server = [[SDLProtocolIndexServer alloc] init];
-            
-            if (self.server) { //This app has become the source of truth
+            if ([SDLProtocolIndexServer sharedInstance]) { //This app has become the source of truth
                 appDelaySeconds = 1.5;
+                SDLLogD(@"Using Delay: %f", appDelaySeconds);
                 completion(appDelaySeconds);
             } else { //This app cannot become the source of truth. It must contact the source of truth for a delay
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.3 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
@@ -714,39 +716,54 @@ int const ProtocolIndexTimeoutSeconds = 20;
         NSDictionary *response = [NSJSONSerialization JSONObjectWithData:delayData options:NSJSONReadingMutableContainers error:&error];
         NSNumber *delay = [response objectForKey:@"delay"];
         appDelaySeconds = delay.doubleValue;
-        completion(appDelaySeconds);
+        
+        if (appDelaySeconds > 0.0) {
+            SDLLogD(@"Using Delay: %f", appDelaySeconds);
+            completion(appDelaySeconds);
+        } else { //SoT is signaling no delay slot is currently open, we must wait longer
+            if ([SDLProtocolIndexServer sharedInstance]) {
+                SDLLogD(@"SoC App Attempting Connection Still");
+                self.retryCounter = 0;
+                completion(2.0);
+            } else {
+                SDLLogD(@"SoC requesting app to standby");
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+                    [self retryDelay:completion finalAttempt:false];
+                });
+            }
+        }
     }
     
     
     
     /*if (appDelaySeconds == 0) {
-        NSString *appName = [[NSProcessInfo processInfo] processName];
-        if (appName == nil) {
-            appName = @"noname";
-        }
-        
-        // Run the app name through an md5 hasher
-        const char *ptr = [appName UTF8String];
-        unsigned char md5Buffer[CC_MD5_DIGEST_LENGTH];
-        CC_MD5(ptr, (unsigned int)strlen(ptr), md5Buffer);
-        
-        // Generate a string of the hex hash
-        NSMutableString *output = [NSMutableString stringWithString:@"0x"];
-        for (int i = 0; i < 8; i++) {
-            [output appendFormat:@"%02X", md5Buffer[i]];
-        }
-        
-        // Transform the string into a number between 0 and 1
-        unsigned long long firstHalf;
-        NSScanner *pScanner = [NSScanner scannerWithString:output];
-        [pScanner scanHexLongLong:&firstHalf];
-        double hashBasedValueInRange0to1 = ((double)firstHalf) / 0xffffffffffffffff;
-        
-        // Transform the number into a number between min and max
-        appDelaySeconds = ((RetryRangeSeconds * hashBasedValueInRange0to1) + MinRetrySeconds);
-    }
-    
-    return appDelaySeconds;*/
+     NSString *appName = [[NSProcessInfo processInfo] processName];
+     if (appName == nil) {
+     appName = @"noname";
+     }
+     
+     // Run the app name through an md5 hasher
+     const char *ptr = [appName UTF8String];
+     unsigned char md5Buffer[CC_MD5_DIGEST_LENGTH];
+     CC_MD5(ptr, (unsigned int)strlen(ptr), md5Buffer);
+     
+     // Generate a string of the hex hash
+     NSMutableString *output = [NSMutableString stringWithString:@"0x"];
+     for (int i = 0; i < 8; i++) {
+     [output appendFormat:@"%02X", md5Buffer[i]];
+     }
+     
+     // Transform the string into a number between 0 and 1
+     unsigned long long firstHalf;
+     NSScanner *pScanner = [NSScanner scannerWithString:output];
+     [pScanner scanHexLongLong:&firstHalf];
+     double hashBasedValueInRange0to1 = ((double)firstHalf) / 0xffffffffffffffff;
+     
+     // Transform the number into a number between min and max
+     appDelaySeconds = ((RetryRangeSeconds * hashBasedValueInRange0to1) + MinRetrySeconds);
+     }
+     
+     return appDelaySeconds;*/
 }
 
 
